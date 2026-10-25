@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>こどもタッチひろば</title>
+<meta name="theme-color" content="#3B82E0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="タッチひろば">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* Layout: one-screen toy box — home with two big doors, each game fills the screen with oversized tap targets; grown-up settings behind a long-press */
+:root {
+  --bg: #F3F6FB;
+  --card: #FFFFFF;
+  --ink: #2A3142;
+  --ink-soft: #6B7488;
+  --sun: #FFB627;
+  --leaf: #2FAE6A;
+  --sky: #3B82E0;
+  --berry: #E5484D;
+  --line: #DCE3EE;
+  --font-display: "Zen Maru Gothic", "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Meiryo", sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; margin: 0; }
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 14px; }
+
+/* top bar */
+.bar { display: flex; align-items: center; gap: 12px; min-height: 56px; }
+.back {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid var(--line); background: var(--card); color: var(--ink);
+  font: inherit; font-size: 26px; cursor: pointer;
+  display: grid; place-items: center; flex: none;
+}
+.bar h2 { margin: 0; font-size: 22px; font-weight: 900; }
+.stars { margin-left: auto; font-size: 20px; color: var(--sun); letter-spacing: 2px; min-height: 1em; }
+
+button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
+
+/* home */
+.home-top { display: flex; justify-content: flex-end; }
+.gear {
+  position: relative; display: flex; align-items: center; gap: 6px;
+  border: 2px solid var(--line); background: var(--card); color: var(--ink-soft);
+  font: inherit; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+  overflow: hidden; min-height: 40px;
+}
+.gear .fill { position: absolute; inset: 0; background: var(--sun); opacity: .35; transform: scaleX(0); transform-origin: left; }
+.gear.holding .fill { transform: scaleX(1); transition: transform .9s linear; }
+.gear span { position: relative; }
+.home-title { text-align: center; margin: 0; font-size: clamp(28px, 7vw, 40px); font-weight: 900; line-height: 1.3; text-wrap: balance; }
+.home-title span { color: var(--berry); }
+.home-sub { text-align: center; color: var(--ink-soft); margin: 0; font-size: 15px; font-weight: 500; }
+.doors { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 16px; padding-block: 8px; }
+.door {
+  border: none; border-radius: 32px; cursor: pointer; font: inherit; color: #fff;
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  font-size: clamp(26px, 7vw, 38px); font-weight: 900;
+  box-shadow: 0 8px 0 rgba(0,0,0,.14);
+  transition: transform .12s;
+  padding: 16px;
+}
+.door:active { transform: translateY(6px); box-shadow: 0 2px 0 rgba(0,0,0,.14); }
+.door .pic { font-size: clamp(56px, 16vw, 88px); line-height: 1; }
+.door.animals { background: var(--leaf); }
+.door.quiz { background: var(--sky); }
+.level-badge { display: block; font-size: 15px; font-weight: 700; opacity: .9; margin-top: 4px; }
+.parent-note { text-align: center; font-size: 12px; color: var(--ink-soft); font-weight: 500; margin: 0; }
+
+/* animals */
+.zoo { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-content: center; min-height: 0; }
+.ani {
+  aspect-ratio: 1; max-width: 100%;
+  border: 3px solid var(--line); border-radius: 28px; background: var(--card);
+  font-size: clamp(44px, 13vw, 76px); cursor: pointer; padding: 0;
+  display: grid; place-items: center; line-height: 1;
+}
+.zoo.few .ani { font-size: clamp(60px, 18vw, 100px); }
+.ani.pop { animation: pop .5s ease; border-color: var(--sun); }
+@keyframes pop { 0%{transform:scale(1)} 30%{transform:scale(1.18) rotate(-6deg)} 60%{transform:scale(.95) rotate(4deg)} 100%{transform:scale(1)} }
+.bubble {
+  min-height: 92px; border-radius: 24px; background: var(--card); border: 3px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+.bubble .name { font-size: 30px; font-weight: 900; }
+.bubble .cry { font-size: 20px; color: var(--berry); }
+.bubble .hint { font-size: 18px; color: var(--ink-soft); font-weight: 500; }
+
+/* quiz */
+.ask {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  background: var(--card); border: 3px solid var(--line); border-radius: 24px; min-height: 92px; padding: 8px 12px;
+}
+.ask .q { font-size: clamp(26px, 7.5vw, 40px); font-weight: 900; text-align: center; text-wrap: balance; }
+.ask .q b { padding: 0 2px; }
+.speak {
+  width: 52px; height: 52px; border-radius: 50%; border: none; background: var(--sun); color: var(--ink);
+  font-size: 24px; cursor: pointer; flex: none;
+}
+.choices { flex: 1; display: grid; gap: 12px; align-content: center; justify-content: center; min-height: 0; }
+.choices.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.choices.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.choices.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 460px; width: 100%; margin: 0 auto; }
+@media (max-width: 480px) {
+  .choices.n3 { grid-template-columns: 1fr 1fr; }
+  .choices.n3 .opt:nth-child(3) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
+}
+.opt {
+  aspect-ratio: 1; max-width: 100%; border: 3px solid var(--line); border-radius: 28px; background: var(--card);
+  cursor: pointer; padding: 14%; display: grid; place-items: center;
+}
+.opt svg { width: 100%; height: 100%; overflow: visible; }
+.opt.shake { animation: shake .45s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-12px)} 40%{transform:translateX(12px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
+.opt.right { border-color: var(--berry); transform: scale(1.06); transition: transform .2s; }
+.opt.dim { opacity: .35; }
+
+/* settings (for grown-ups) */
+.settings { overflow-y: auto; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding-bottom: 12px; font-weight: 500; }
+.sec { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.sec h3 { margin: 0; font-size: 17px; font-weight: 900; }
+.row { display: flex; flex-direction: column; gap: 8px; }
+.row > .lbl { font-size: 14px; font-weight: 700; }
+.row > .help { font-size: 12px; color: var(--ink-soft); margin: 0; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg button, .chip {
+  border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: 15px; font-weight: 700;
+  border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 44px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.chip[aria-pressed="false"] { opacity: .45; }
+.chip .dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+.chip svg { width: 20px; height: 20px; }
+.preset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.preset button {
+  border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; border-radius: 16px;
+  padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.preset button b { font-size: 16px; font-weight: 900; }
+.preset button small { font-size: 11px; color: var(--ink-soft); font-weight: 500; }
+.preset button[aria-pressed="true"] { border-color: var(--berry); background: #FFF1F1; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 700; }
+.switch button {
+  width: 60px; height: 34px; border-radius: 999px; border: none; background: var(--line); position: relative; cursor: pointer; flex: none;
+}
+.switch button::after { content: ""; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.switch button[aria-checked="true"] { background: var(--leaf); }
+.switch button[aria-checked="true"]::after { left: 30px; }
+.note { font-size: 12px; color: var(--ink-soft); margin: 0; }
+.reset { align-self: flex-start; border: 2px solid var(--line); background: var(--card); color: var(--ink-soft); font: inherit; font-size: 14px; border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 44px; }
+
+/* hanamaru overlay */
+.maru { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 20; }
+.maru svg { width: min(78vw, 420px); height: auto; }
+.maru path { fill: none; stroke: var(--berry); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+.maru .txt { font-family: var(--font-display); font-weight: 900; font-size: 34px; fill: var(--berry); }
+.maru.go path { animation: draw 1s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ani.pop, .opt.shake { animation: none; }
+  .maru.go path { animation-duration: .01s; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+(function () {
+  const app = document.getElementById('app');
+
+  /* ---------- data ---------- */
+  const ANIMALS = [
+    ['🐶', 'いぬ', 'ワンワン'], ['🐱', 'ねこ', 'ニャーオ'], ['🐷', 'ぶた', 'ブーブー'],
+    ['🐮', 'うし', 'モーモー'], ['🐤', 'ひよこ', 'ピヨピヨ'], ['🐸', 'かえる', 'ケロケロ'],
+    ['🐘', 'ぞう', 'パオーン'], ['🦁', 'らいおん', 'ガオー'], ['🐵', 'おさる', 'ウキキー'],
+    ['🐑', 'ひつじ', 'メェー'], ['🦆', 'あひる', 'ガーガー'], ['🐴', 'うま', 'ヒヒーン']
+  ];
+  const COLORS = [
+    { name: 'あか', adj: 'あかい', hex: '#E5484D' }, { name: 'あお', adj: 'あおい', hex: '#3B82E0' },
+    { name: 'きいろ', adj: 'きいろい', hex: '#F5BE1B' }, { name: 'みどり', adj: 'みどりの', hex: '#2FAE6A' },
+    { name: 'ピンク', adj: 'ピンクの', hex: '#F27CB0' }, { name: 'むらさき', adj: 'むらさきの', hex: '#8A5CD6' },
+    { name: 'オレンジ', adj: 'オレンジの', hex: '#F7862F' }
+  ];
+  const SHAPES = ['まる', 'さんかく', 'しかく', 'ほし', 'ハート', 'ひしがた'];
+
+  const PRESETS = {
+    easy:   { choices: 2, colors: ['あか', 'あお', 'きいろ', 'みどり'], shapes: ['まる', 'さんかく', 'しかく'], combo: false },
+    normal: { choices: 3, colors: ['あか', 'あお', 'きいろ', 'みどり', 'ピンク'], shapes: ['まる', 'さんかく', 'しかく', 'ほし', 'ハート'], combo: false },
+    hard:   { choices: 4, colors: COLORS.map(c => c.name), shapes: SHAPES.slice(), combo: true }
+  };
+  const LEVEL_NAME = { easy: 'かんたん', normal: 'ふつう', hard: 'むずかしい', custom: 'カスタム' };
+
+  /* ---------- settings ---------- */
+  const DEFAULTS = Object.assign({
+    level: 'normal', quizType: 'mix', voice: true, sfx: true, rate: 'normal',
+    animalCount: 12, cry: true, wait: 'normal'
+  }, PRESETS.normal);
+  let S = load();
+  function load() {
+    let s = {};
+    try { s = JSON.parse(localStorage.getItem('kids-touch-settings') || '{}') || {}; } catch (e) { s = {}; }
+    const out = Object.assign({}, DEFAULTS, s);
+    out.colors = (out.colors || []).filter(n => COLORS.some(c => c.name === n));
+    out.shapes = (out.shapes || []).filter(n => SHAPES.includes(n));
+    if (out.colors.length < 2) out.colors = DEFAULTS.colors.slice();
+    if (out.shapes.length < 2) out.shapes = DEFAULTS.shapes.slice();
+    return out;
+  }
+  function save() { try { localStorage.setItem('kids-touch-settings', JSON.stringify(S)); } catch (e) {} }
+  function detectLevel() {
+    for (const k of ['easy', 'normal', 'hard']) {
+      const p = PRESETS[k];
+      if (p.choices === S.choices && p.combo === S.combo &&
+          p.colors.length === S.colors.length && p.colors.every(c => S.colors.includes(c)) &&
+          p.shapes.length === S.shapes.length && p.shapes.every(c => S.shapes.includes(c))) return k;
+    }
+    return 'custom';
+  }
+
+  /* ---------- sound & voice ---------- */
+  let ctx = null;
+  function audio() {
+    try { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) { ctx = null; }
+    return ctx;
+  }
+  function tone(freq, start, dur, type = 'sine', vol = 0.18) {
+    if (!S.sfx) return;
+    const c = audio(); if (!c) return;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, c.currentTime + start);
+    g.gain.exponentialRampToValueAtTime(vol, c.currentTime + start + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
+    o.connect(g).connect(c.destination);
+    o.start(c.currentTime + start); o.stop(c.currentTime + start + dur + 0.05);
+  }
+  const sfx = {
+    pop() { tone(660, 0, .12, 'triangle'); tone(990, .06, .12, 'triangle'); },
+    yay() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .1, .25, 'triangle', .2)); },
+    boo() { tone(330, 0, .18, 'sine', .12); tone(262, .15, .25, 'sine', .12); }
+  };
+  let jaVoice = null;
+  function pickVoice() { try { jaVoice = speechSynthesis.getVoices().find(v => /^ja/i.test(v.lang)) || null; } catch (e) {} }
+  try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
+  const RATES = { slow: 0.65, normal: 0.85, fast: 1.05 };
+  function say(text) {
+    if (!S.voice) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP'; u.rate = RATES[S.rate] || 0.85; u.pitch = 1.25;
+      if (jaVoice) u.voice = jaVoice;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function hush() { try { speechSynthesis.cancel(); } catch (e) {} }
+
+  /* ---------- shapes ---------- */
+  function starPts() {
+    const p = [];
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 ? 19 : 44, a = -Math.PI / 2 + i * Math.PI / 5;
+      p.push((50 + r * Math.cos(a)).toFixed(1) + ',' + (54 + r * Math.sin(a)).toFixed(1));
+    }
+    return p.join(' ');
+  }
+  const STAR = starPts();
+  function shapeSVG(shape, hex) {
+    const s = `fill="${hex}" stroke="${hex}" stroke-width="6" stroke-linejoin="round"`;
+    let body = '';
+    if (shape === 'まる') body = `<circle cx="50" cy="50" r="42" ${s}/>`;
+    if (shape === 'さんかく') body = `<polygon points="50,9 93,87 7,87" ${s}/>`;
+    if (shape === 'しかく') body = `<rect x="11" y="11" width="78" height="78" rx="8" ${s}/>`;
+    if (shape === 'ほし') body = `<polygon points="${STAR}" ${s}/>`;
+    if (shape === 'ハート') body = `<path d="M50 88 C 22 68, 4 48, 14 28 C 23 11, 44 12, 50 30 C 56 12, 77 11, 86 28 C 96 48, 78 68, 50 88 Z" ${s}/>`;
+    if (shape === 'ひしがた') body = `<polygon points="50,6 86,50 50,94 14,50" ${s}/>`;
+    return `<svg viewBox="0 0 100 100" aria-hidden="true">${body}</svg>`;
+  }
+
+  const rand = n => Math.floor(Math.random() * n);
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const colorObjs = () => COLORS.filter(c => S.colors.includes(c.name));
+
+  /* ---------- hanamaru ---------- */
+  function hanamaruPath() {
+    let d = '';
+    const turns = 2.2, steps = 120;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps, a = -Math.PI / 2 + t * turns * Math.PI * 2, r = 18 + t * 58;
+      d += (i ? 'L' : 'M') + (150 + r * Math.cos(a)).toFixed(1) + ' ' + (150 + r * Math.sin(a)).toFixed(1);
+    }
+    const n = 12, R = 92, B = 122;
+    for (let i = 0; i <= n; i++) {
+      const a0 = -Math.PI / 2 + (i / n) * Math.PI * 2;
+      const x = 150 + R * Math.cos(a0), y = 150 + R * Math.sin(a0);
+      if (i === 0) { d += 'M' + x.toFixed(1) + ' ' + y.toFixed(1); continue; }
+      const am = a0 - Math.PI / n;
+      d += 'Q' + (150 + B * Math.cos(am)).toFixed(1) + ' ' + (150 + B * Math.sin(am)).toFixed(1) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1);
+    }
+    return d;
+  }
+  const HANA = hanamaruPath();
+  function showMaru(ms) {
+    const el = document.createElement('div');
+    el.className = 'maru';
+    el.innerHTML = `<svg viewBox="0 0 300 330"><path d="${HANA}"/><text class="txt" x="150" y="320" text-anchor="middle">せいかい！</text></svg>`;
+    document.body.appendChild(el);
+    const p = el.querySelector('path');
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+    requestAnimationFrame(() => el.classList.add('go'));
+    setTimeout(() => el.remove(), Math.max(1200, ms - 100));
+  }
+
+  /* ---------- screens ---------- */
+  function bar(title, extra = '') {
+    return `<div class="bar"><button class="back" id="back" aria-label="もどる">←</button><h2>${title}</h2>${extra}</div>`;
+  }
+
+  function home() {
+    hush();
+    const lv = LEVEL_NAME[detectLevel()];
+    app.innerHTML = `<div class="screen">
+      <div class="home-top"><button class="gear" id="gear" aria-label="おとなの設定（長押しで開く）"><i class="fill"></i><span>⚙ 設定（長押し）</span></button></div>
+      <h1 class="home-title">こども<span>タッチ</span>ひろば</h1>
+      <p class="home-sub">あそびたいほうを タッチしてね</p>
+      <div class="doors">
+        <button class="door animals" id="go-animals"><span class="pic">🐶</span><span>どうぶつ</span></button>
+        <button class="door quiz" id="go-quiz"><span class="pic">🔴</span><span>いろ・かたち<span class="level-badge">レベル：${lv}</span></span></button>
+      </div>
+      <p class="parent-note">音が出ます。スマホのマナーモードを解除してください。</p>
+    </div>`;
+    document.getElementById('go-animals').onclick = () => { sfx.pop(); animals(); };
+    document.getElementById('go-quiz').onclick = () => { sfx.pop(); quiz(); };
+    holdToOpen(document.getElementById('gear'), settings);
+  }
+
+  function holdToOpen(btn, fn) {
+    let t = null;
+    const start = e => { e.preventDefault(); btn.classList.add('holding'); t = setTimeout(() => { btn.classList.remove('holding'); fn(); }, 900); };
+    const stop = () => { btn.classList.remove('holding'); clearTimeout(t); };
+    btn.addEventListener('pointerdown', start);
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+    btn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+  }
+
+  function animals() {
+    const list = ANIMALS.slice(0, S.animalCount);
+    app.innerHTML = `<div class="screen">${bar('どうぶつタッチ')}
+      <div class="bubble" id="bubble"><div class="hint">どうぶつを タッチしてね</div></div>
+      <div class="zoo ${list.length <= 6 ? 'few' : ''}">${list.map((a, i) => `<button class="ani" data-i="${i}" aria-label="${a[1]}">${a[0]}</button>`).join('')}</div>
+    </div>`;
+    document.getElementById('back').onclick = home;
+    const bubble = document.getElementById('bubble');
+    app.querySelectorAll('.ani').forEach(btn => {
+      btn.onclick = () => {
+        const [, name, cry] = list[+btn.dataset.i];
+        sfx.pop();
+        btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+        bubble.innerHTML = `<div class="name">${name}</div>${S.cry ? `<div class="cry">「${cry}」</div>` : ''}`;
+        setTimeout(() => say(S.cry ? `${name}。${cry}` : name), 120);
+      };
+    });
+  }
+
+  let score = 0, current = null, locked = false, nextTimer = null;
+  const WAITS = { short: 1300, normal: 1800, long: 2600 };
+  function quiz() {
+    score = 0;
+    app.innerHTML = `<div class="screen">${bar('いろ・かたち', '<div class="stars" id="stars" aria-live="polite"></div>')}
+      <div class="ask"><div class="q" id="q"></div><button class="speak" id="speak" aria-label="もういちど きく">🔊</button></div>
+      <div class="choices" id="choices"></div>
+    </div>`;
+    document.getElementById('back').onclick = () => { clearTimeout(nextTimer); home(); };
+    document.getElementById('speak').onclick = () => current && say(current.voice);
+    next(true);
+  }
+
+  function makeQuestion() {
+    const cols = colorObjs();
+    let types = S.quizType === 'mix' ? ['color', 'shape'] : [S.quizType];
+    if (S.combo && S.quizType === 'mix') types.push('combo');
+    const type = types[rand(types.length)];
+
+    if (type === 'combo') {
+      const n = Math.min(S.choices, cols.length * S.shapes.length);
+      const tc = cols[rand(cols.length)], ts = S.shapes[rand(S.shapes.length)];
+      const opts = [{ c: tc, s: ts, ok: true }];
+      const key = o => o.c.name + o.s;
+      const used = new Set([key(opts[0])]);
+      // tricky distractors first: same color, then same shape
+      const tricky = shuffle([
+        ...S.shapes.filter(s => s !== ts).map(s => ({ c: tc, s })),
+        ...cols.filter(c => c !== tc).map(c => ({ c, s: ts }))
+      ]);
+      const sameColor = tricky.find(o => o.c === tc), sameShape = tricky.find(o => o.s === ts);
+      [sameColor, sameShape].forEach(o => { if (o && opts.length < n && !used.has(key(o))) { opts.push(o); used.add(key(o)); } });
+      let guard = 0;
+      while (opts.length < n && guard++ < 200) {
+        const o = { c: cols[rand(cols.length)], s: S.shapes[rand(S.shapes.length)] };
+        if (!used.has(key(o))) { opts.push(o); used.add(key(o)); }
+      }
+      return {
+        label: `<b style="color:${tc.hex}">${tc.adj}</b><b>${ts}</b>は どれ？`,
+        voice: `${tc.adj} ${ts}は どれかな？`,
+        target: `${tc.adj} ${ts}`,
+        opts: shuffle(opts).map(o => ({ svg: shapeSVG(o.s, o.c.hex), ok: !!o.ok, name: `${o.c.adj}${o.s}` }))
+      };
+    }
+    if (type === 'color') {
+      const n = Math.min(S.choices, cols.length);
+      const pick = shuffle(cols).slice(0, n);
+      const shape = S.shapes[rand(S.shapes.length)];
+      const ans = rand(n);
+      return {
+        label: `<b style="color:${pick[ans].hex}">${pick[ans].name}</b>は どれ？`,
+        voice: `${pick[ans].name}は どれかな？`,
+        target: pick[ans].name,
+        opts: pick.map((c, i) => ({ svg: shapeSVG(shape, c.hex), ok: i === ans, name: c.name }))
+      };
+    }
+    const n = Math.min(S.choices, S.shapes.length);
+    const shs = shuffle(S.shapes).slice(0, n);
+    const pc = shuffle(cols);
+    const ans = rand(n);
+    return {
+      label: `<b>${shs[ans]}</b>は どれ？`,
+      voice: `${shs[ans]}は どれかな？`,
+      target: shs[ans],
+      opts: shs.map((s, i) => ({ svg: shapeSVG(s, pc[i % pc.length].hex), ok: i === ans, name: s }))
+    };
+  }
+
+  function next(first) {
+    locked = false;
+    current = makeQuestion();
+    document.getElementById('q').innerHTML = current.label;
+    const box = document.getElementById('choices');
+    box.className = 'choices n' + current.opts.length;
+    box.innerHTML = current.opts.map((o, i) => `<button class="opt" data-i="${i}" aria-label="${o.name}">${o.svg}</button>`).join('');
+    box.querySelectorAll('.opt').forEach(btn => { btn.onclick = () => answer(btn, current.opts[+btn.dataset.i]); });
+    setTimeout(() => say(current.voice), first ? 150 : 300);
+  }
+
+  function answer(btn, opt) {
+    if (locked) return;
+    if (opt.ok) {
+      locked = true;
+      btn.classList.add('right');
+      document.querySelectorAll('.opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
+      const wait = WAITS[S.wait] || 1800;
+      sfx.yay(); showMaru(wait); say('せいかい！すごいね！');
+      score++;
+      const st = document.getElementById('stars');
+      if (st) st.textContent = '★'.repeat(((score - 1) % 10) + 1);
+      nextTimer = setTimeout(() => { if (document.getElementById('choices')) next(); }, wait);
+    } else {
+      sfx.boo();
+      btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+      say(`ちがうよ。${current.target}は どれかな？`);
+    }
+  }
+
+  /* ---------- settings screen ---------- */
+  function seg(key, items) {
+    return `<div class="seg" data-key="${key}">${items.map(([v, l]) => `<button data-v="${v}" aria-pressed="${String(S[key]) === String(v)}">${l}</button>`).join('')}</div>`;
+  }
+  function sw(key, label) {
+    return `<div class="switch"><span id="lbl-${key}">${label}</span><button role="switch" data-key="${key}" aria-labelledby="lbl-${key}" aria-checked="${!!S[key]}"></button></div>`;
+  }
+
+  function settings() {
+    hush();
+    const lv = detectLevel();
+    app.innerHTML = `<div class="screen">${bar('おとなの設定')}
+      <div class="settings">
+        <section class="sec">
+          <h3>いろ・かたちクイズ</h3>
+          <div class="row">
+            <span class="lbl">むずかしさ</span>
+            <div class="preset" id="preset">
+              <button data-p="easy" aria-pressed="${lv === 'easy'}"><b>かんたん</b><small>2つから選ぶ</small></button>
+              <button data-p="normal" aria-pressed="${lv === 'normal'}"><b>ふつう</b><small>3つから選ぶ</small></button>
+              <button data-p="hard" aria-pressed="${lv === 'hard'}"><b>むずかしい</b><small>4つ・組み合わせ</small></button>
+            </div>
+            <p class="help">${lv === 'custom' ? '今はカスタム設定です。下の項目を個別に変えています。' : '下の項目で、さらに細かく変えられます。'}</p>
+          </div>
+          <div class="row"><span class="lbl">選択肢の数</span>${seg('choices', [[2, '2つ'], [3, '3つ'], [4, '4つ']])}</div>
+          <div class="row"><span class="lbl">出す問題</span>${seg('quizType', [['color', 'いろだけ'], ['shape', 'かたちだけ'], ['mix', 'まぜこぜ']])}</div>
+          ${sw('combo', '「あかい まる」のような組み合わせ問題も出す')}
+          <p class="note">組み合わせ問題は「まぜこぜ」のときに出ます。</p>
+          <div class="row">
+            <span class="lbl">使う色（2つ以上）</span>
+            <div class="seg" id="colors">${COLORS.map(c => `<button class="chip" data-v="${c.name}" aria-pressed="${S.colors.includes(c.name)}"><i class="dot" style="background:${c.hex}"></i>${c.name}</button>`).join('')}</div>
+          </div>
+          <div class="row">
+            <span class="lbl">使う形（2つ以上）</span>
+            <div class="seg" id="shapes">${SHAPES.map(s => `<button class="chip" data-v="${s}" aria-pressed="${S.shapes.includes(s)}">${shapeSVG(s, '#6B7488')}${s}</button>`).join('')}</div>
+          </div>
+          <div class="row"><span class="lbl">正解のあと、次の問題までの時間</span>${seg('wait', [['short', 'みじかい'], ['normal', 'ふつう'], ['long', 'ながい']])}</div>
+        </section>
+
+        <section class="sec">
+          <h3>どうぶつタッチ</h3>
+          <div class="row"><span class="lbl">どうぶつの数</span>${seg('animalCount', [[6, '6ぴき（大きく表示）'], [12, '12ひき']])}</div>
+          ${sw('cry', '鳴き声も読み上げる')}
+        </section>
+
+        <section class="sec">
+          <h3>音</h3>
+          ${sw('voice', '読み上げの声')}
+          <div class="row"><span class="lbl">声の速さ</span>${seg('rate', [['slow', 'ゆっくり'], ['normal', 'ふつう'], ['fast', 'はやい']])}</div>
+          ${sw('sfx', '効果音（ピコン、など）')}
+        </section>
+
+        <p class="note">設定はこのスマホ（ブラウザ）に保存されます。</p>
+        <button class="reset" id="reset">はじめの設定にもどす</button>
+      </div>
+    </div>`;
+
+    document.getElementById('back').onclick = home;
+    const rerender = () => { const sc = app.querySelector('.settings').scrollTop; settings(); app.querySelector('.settings').scrollTop = sc; };
+
+    app.querySelectorAll('#preset button').forEach(b => b.onclick = () => {
+      Object.assign(S, JSON.parse(JSON.stringify(PRESETS[b.dataset.p])));
+      S.level = b.dataset.p; save(); sfx.pop(); rerender();
+    });
+    app.querySelectorAll('.seg[data-key]').forEach(g => {
+      const key = g.dataset.key;
+      g.querySelectorAll('button').forEach(b => b.onclick = () => {
+        const v = b.dataset.v;
+        S[key] = (key === 'choices' || key === 'animalCount') ? +v : v;
+        save(); sfx.pop(); rerender();
+        if (key === 'rate') say('この はやさで よみます');
+      });
+    });
+    app.querySelectorAll('.switch button').forEach(b => b.onclick = () => {
+      const key = b.dataset.key; S[key] = !S[key]; save(); sfx.pop(); rerender();
+    });
+    [['colors', 'colors'], ['shapes', 'shapes']].forEach(([id, key]) => {
+      app.querySelectorAll('#' + id + ' .chip').forEach(b => b.onclick = () => {
+        const v = b.dataset.v, arr = S[key];
+        if (arr.includes(v)) { if (arr.length <= 2) return; S[key] = arr.filter(x => x !== v); }
+        else S[key] = arr.concat(v);
+        save(); sfx.pop(); rerender();
+      });
+    });
+    document.getElementById('reset').onclick = () => {
+      S = JSON.parse(JSON.stringify(DEFAULTS)); save(); sfx.pop(); rerender();
+    };
+  }
+
+  home();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
