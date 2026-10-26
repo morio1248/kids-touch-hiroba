@@ -1121,7 +1121,11 @@ body.night {
     const target = ({ low: .05, mid: .1, high: .17 }[level] || .05) * (def.boost || 1);
     const g = target / rms;
     for (let i = 0; i < N; i++) out[i] = Math.tanh(out[i] * g);
-    return out;
+    // 継ぎ目のない短い音を約4分ぶんつなげる（スマホのループ再生で入る一瞬の無音を、4分に1回まで減らす）
+    const reps = Math.max(1, Math.round(240 / def.sec));
+    const long = new Float32Array(N * reps);
+    for (let r = 0; r < reps; r++) long.set(out, r * N);
+    return long;
   }
   function toWav(f) {
     const buf = new ArrayBuffer(44 + f.length * 2), v = new DataView(buf);
