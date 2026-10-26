@@ -531,7 +531,10 @@ body.night {
       bufs.forEach((b, i) => {
         const src = c.createBufferSource(); src.buffer = b; src.connect(c.destination); src.start(t);
         voiceNodes.push(src);
-        t += b.duration + (i < bufs.length - 1 ? 0.08 : 0);
+        // つなぎの間：「。」で終わる台詞のあとは長め、「！」のあとは少し、それ以外は短く
+        const prev = VOICE_LINES[parts[i]];
+        const gap = /。$/.test(prev) ? 0.5 : /[！!]$/.test(prev) ? 0.3 : 0.08;
+        t += b.duration + (i < bufs.length - 1 ? gap : 0);
       });
       if (onEnd) setTimeout(() => { if (tok === voiceTok) onEnd(); }, (t - c.currentTime) * 1000 + 60);
     });
