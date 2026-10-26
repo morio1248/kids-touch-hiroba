@@ -617,7 +617,9 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         const a = list[+btn.dataset.i], [, name, cry] = a;
         timers.forEach(clearTimeout); timers = [];
         stopCry();
-        btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+        app.querySelectorAll('.ani.pop').forEach(x => x.classList.remove('pop'));
+        void btn.offsetWidth; btn.classList.add('pop');
+        btn.addEventListener('animationend', () => btn.classList.remove('pop'), { once: true });
         bubble.innerHTML = `<div class="name">${name}</div>${S.cryMode !== 'off' ? `<div class="cry">「${cry}」</div>` : ''}`;
         if (S.cryMode === 'real') { audio(); sayThen(Y(name), () => playCry(a, true)); }
         else if (S.cryMode === 'word') later(() => say(`${Y(name)}。${cry}`), 60);
