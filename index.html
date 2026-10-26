@@ -385,16 +385,16 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   };
   /* 読み上げ用の書き方（画面はひらがな、声は漢字・カタカナで渡すとアクセントが正しくなる） */
   const YOMI = {
-    'いぬ': '犬', 'ねこ': '猫', 'ぶた': '豚', 'うし': '牛', 'ひよこ': 'ヒヨコ', 'ぞう': '象', 'らいおん': 'ライオン',
-    'ひつじ': '羊', 'うま': '馬', 'にわとり': 'ニワトリ', 'やぎ': 'ヤギ', 'からす': 'カラス', 'すずめ': 'スズメ',
+    'いぬ': 'イヌ', 'ねこ': 'ネコ', 'ぶた': 'ブタ', 'うし': 'ウシ', 'ひよこ': 'ヒヨコ', 'ぞう': 'ゾウ', 'らいおん': 'ライオン',
+    'ひつじ': 'ヒツジ', 'うま': 'ウマ', 'にわとり': 'ニワトリ', 'やぎ': 'ヤギ', 'からす': 'カラス', 'すずめ': 'スズメ',
     'おおかみ': 'オオカミ', 'いのしし': 'イノシシ', 'あしか': 'アシカ', 'きりん': 'キリン', 'うさぎ': 'ウサギ',
     'かめ': 'カメ', 'ぺんぎん': 'ペンギン', 'かたつむり': 'カタツムリ', 'かに': 'カニ', 'くじら': 'クジラ',
     'りす': 'リス', 'ちょうちょ': 'チョウチョ', 'わに': 'ワニ', 'はりねずみ': 'ハリネズミ', 'たこ': 'タコ',
-    'きょうりゅう': '恐竜',
-    'あか': '赤', 'あお': '青', 'きいろ': '黄色', 'みどり': '緑', 'むらさき': '紫',
-    'あかい': '赤い', 'あおい': '青い', 'きいろい': '黄色い', 'みどりの': '緑の', 'むらさきの': '紫の',
-    'まる': '丸', 'さんかく': '三角', 'しかく': '四角', 'ほし': '星', 'ひしがた': 'ひし形',
-    'りんご': 'リンゴ', 'いちご': 'イチゴ', 'おさかな': 'お魚', 'くるま': '車', 'ふうせん': '風船'
+    'きょうりゅう': 'キョウリュウ',
+    'あか': 'アカ', 'あお': 'アオ', 'きいろ': 'キイロ', 'みどり': 'ミドリ', 'むらさき': 'ムラサキ',
+    'あかい': '赤い', 'あおい': '青い', 'きいろい': '黄色い', 'みどりの': 'ミドリの', 'むらさきの': 'ムラサキの',
+    'まる': 'マル', 'さんかく': 'サンカク', 'しかく': 'シカク', 'ほし': 'ホシ', 'ひしがた': 'ヒシガタ',
+    'りんご': 'リンゴ', 'いちご': 'イチゴ', 'おさかな': 'オサカナ', 'くるま': 'クルマ', 'ふうせん': 'フウセン'
   };
   const Y = w => YOMI[w] || w;
 
@@ -767,7 +767,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       } else {
         sfx.boo();
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        say(`違うよ。${current.target}は、どれかな？`);
+        say(`ちがうよ。${current.target}は、どれかな？`);
       }
     }
     next(true);
@@ -834,7 +834,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       } else {
         sfx.boo();
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        say('違うよ。いっしょに数えてみよう');
+        say('ちがうよ。いっしょに、かぞえてみよう');
         countAloud();
       }
     }
@@ -852,7 +852,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     const pool = SHADOW_ANIMALS.concat(ANIMALS.filter(a => !a[4] && !SHADOW_ANIMALS.some(b => b[1] === a[1])));
     pool.forEach(a => a[3] && loadSound(a[3]));
     let target = null, prev = null, locked3 = false;
-    const Q_VOICE = 'この影は、だれかな？';
+    const Q_VOICE = 'このかげは、だれかな？';
     document.getElementById('speak').onclick = () => say(Q_VOICE);
     function next(first) {
       locked3 = false;
@@ -886,7 +886,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       } else {
         sfx.boo();
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        say(`${Y(a[1])}じゃないよ。よく見てね`);
+        say(`${Y(a[1])}じゃないよ。よくみてね`);
       }
     }
     next(true);
@@ -1014,9 +1014,9 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       save(); sfx.pop(); rerender();
     });
     const vp = document.getElementById('voice-pick');
-    if (vp) vp.onchange = () => { S.voiceName = vp.value; save(); pickVoice(); rerender(); say('こんにちは。赤は、どれかな？'); };
+    if (vp) vp.onchange = () => { S.voiceName = vp.value; save(); pickVoice(); rerender(); say('こんにちは。アカは、どれかな？'); };
     const vt = document.getElementById('voice-try');
-    if (vt) vt.onclick = () => say('こんにちは。これは犬です。赤は、どれかな？');
+    if (vt) vt.onclick = () => say('こんにちは。これはイヌです。アカは、どれかな？');
     const reset = document.getElementById('reset');
     if (reset) reset.onclick = () => { const age = S.age; S = clone(DEFAULTS); S.age = age; save(); sfx.pop(); rerender(); };
   }
