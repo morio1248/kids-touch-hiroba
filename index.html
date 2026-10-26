@@ -109,8 +109,21 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 .tile.grape { background: var(--grape); }
 .tile.orange { background: var(--orange); }
 .tile.night { background: var(--night); }
-.baby-note { grid-row: span 2; background: var(--card); border: 3px solid var(--line); border-radius: 28px; padding: 18px 20px; font-weight: 500; font-size: 15px; line-height: 1.7; display: flex; flex-direction: column; justify-content: center; gap: 6px; overflow: auto; }
-.baby-note b { font-weight: 900; font-size: 17px; }
+.peek {
+  flex: 1; min-height: 0; border: 3px solid var(--line); border-radius: 32px; background: var(--card); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink);
+  transition: background-color .3s;
+}
+.peek-face { font-size: clamp(120px, 40vw, 220px); line-height: 1.05; }
+.peek-face.boo { animation: boo .6s cubic-bezier(.3, 1.6, .5, 1); }
+.peek-face.hide { animation: hidein .35s ease-out; }
+@keyframes boo { 0% { transform: scale(.3) rotate(-10deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes hidein { 0% { transform: scale(.85); opacity: .4; } 100% { transform: scale(1); opacity: 1; } }
+.peek-word { font-size: clamp(30px, 9vw, 46px); font-weight: 900; color: var(--berry); min-height: 1.3em; }
+.peek-word.wait { color: var(--ink-soft); }
+.sky-area { flex: 1; min-height: 0; position: relative; border-radius: 28px; overflow: hidden; background: #0E1430; touch-action: none; border: 3px solid var(--line); }
+.sky-area canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sky-hint { position: absolute; left: 0; right: 0; top: 45%; margin: 0; text-align: center; color: #8E9AC4; font-size: 22px; pointer-events: none; transition: opacity .5s; }
 
 /* ねんねの音 (night palette while this screen is open) */
 body.night {
@@ -307,6 +320,7 @@ body.night {
 @media (prefers-reduced-motion: reduce) {
   .ani.pop, .opt.shake, .num.shake, .thing.flash { animation: none; }
   .bub .in { animation: none; }
+  .peek-face.boo, .peek-face.hide { animation: none; }
   .maru.go path { animation-duration: .01s; }
 }
 </style>
@@ -345,9 +359,9 @@ body.night {
   const NOISES = [
     { id: 'white', ic: '📻', t: 'ザーッ', sub: 'ホワイトノイズ', sec: 12 },
     { id: 'pink', ic: '🌧️', t: 'さらさら', sub: '雨のような音', sec: 12 },
-    { id: 'brown', ic: '🌀', t: 'ゴーッ', sub: '低くこもった音', sec: 12 },
+    { id: 'brown', ic: '🌀', t: 'ゴーッ', sub: '低くこもった音', sec: 12, boost: 1.3 },
     { id: 'shush', ic: '🤫', t: 'シーッ', sub: 'あやすときの声', sec: 16 },
-    { id: 'womb', ic: '💓', t: 'おなかの中', sub: '心音と胎内の音', sec: 20 },
+    { id: 'womb', ic: '💓', t: 'おなかの中', sub: '心音と胎内の音', sec: 20, boost: 2.4 },
     { id: 'waves', ic: '🌊', t: 'なみ', sub: 'よせては返す波', sec: 16 }
   ];
   const NUM = ['', 'いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう', 'じゅう'];
@@ -607,6 +621,8 @@ body.night {
   /* ---------- home ---------- */
   const GAMES = {
     1: [
+      { id: 'peek', t: 'いないいないばあ', sub: 'タッチで ばあ！', cls: 'orange', pic: '<span>🙈</span>' },
+      { id: 'sparkle', t: 'キラキラタッチ', sub: 'さわると ひかる', cls: 'grape', pic: '<span>✨</span>' },
       { id: 'nenne', t: 'ねんねの音', sub: 'ホワイトノイズ など', cls: 'night', pic: '<span>🌙</span>' }
     ],
     2: [
@@ -620,7 +636,7 @@ body.night {
       { id: 'shadow', t: 'かげあて', sub: 'だれの かげかな', cls: 'grape', pic: '<span class="sil-white">🐘</span>' }
     ]
   };
-  const START = { nenne: () => nenne(), animals: () => animals(), bubbles: () => bubbles(), quiz: () => quiz(S.age), count: () => count(), shadow: () => shadow() };
+  const START = { peek: () => peekaboo(), sparkle: () => sparkle(), nenne: () => nenne(), animals: () => animals(), bubbles: () => bubbles(), quiz: () => quiz(S.age), count: () => count(), shadow: () => shadow() };
 
   function home() {
     const games = GAMES[S.age];
@@ -636,7 +652,6 @@ body.night {
       </div>
       <div class="tiles">
         ${games.map(g => `<button class="tile ${g.cls}" data-g="${g.id}"><span class="pic">${g.pic}</span><span class="t">${g.t}<span class="sub">${g.id === 'quiz' ? 'レベル：' + LEVEL_NAME[detectLevel(S['q' + S.age])] : g.sub}</span></span></button>`).join('')}
-        ${S.age === 1 ? `<div class="baby-note"><b>泣きやまないときに</b><span>ザーッという音や、おなかの中のような音は、赤ちゃんが落ち着きやすいといわれています。</span><span>スマホは赤ちゃんの顔から離して置き、音量は小さめにしてください。</span></div>` : ''}
       </div>
       <p class="parent-note">音が出ます。スマホのマナーモードを解除してください。</p>
     </div>`;
@@ -945,6 +960,126 @@ body.night {
     next(true);
   }
 
+  /* ---------- 0・1さい: いないいないばあ ---------- */
+  function peekaboo() {
+    const list = ANIMALS.slice(0, 12);
+    if (S.cryMode === 'real') list.forEach(a => loadSound(a[3]));
+    app.innerHTML = `<div class="screen">${bar('いないいないばあ')}
+      <button class="peek" id="peek" aria-label="タッチしてね"><span class="peek-face" id="pf">🙈</span><span class="peek-word wait" id="pw">いないいない…</span></button>
+    </div>`;
+    wireBack();
+    const peek = document.getElementById('peek'), pf = document.getElementById('pf'), pw = document.getElementById('pw');
+    let shown = false, prev = null, busy = false;
+    const anim = (el, c) => { el.classList.remove('boo', 'hide'); void el.offsetWidth; el.classList.add(c); };
+    function hide() {
+      shown = false; stopCry();
+      pf.innerHTML = '🙈'; anim(pf, 'hide');
+      pw.textContent = 'いないいない…'; pw.classList.add('wait');
+      peek.style.background = '';
+      say('いないいない');
+    }
+    function show() {
+      shown = true;
+      let a; do { a = list[rand(list.length)]; } while (a === prev && list.length > 1);
+      prev = a;
+      pf.innerHTML = `<span class="${a[4] || ''}">${a[0]}</span>`; anim(pf, 'boo');
+      pw.textContent = 'ばあ！'; pw.classList.remove('wait');
+      const c = COLORS[rand(COLORS.length)];
+      peek.style.background = `color-mix(in srgb, ${c.hex} 18%, var(--card))`;
+      sfx.pop();
+      if (S.cryMode === 'real') sayThen(`ばあ！${Y(a[1])}`, () => playCry(a, true), 1800);
+      else if (S.cryMode === 'word') say(`ばあ！${Y(a[1])}。${a[2]}`);
+      else say(`ばあ！${Y(a[1])}`);
+    }
+    peek.onclick = () => {
+      if (busy) return;
+      busy = true; setTimeout(() => { busy = false; }, 450);
+      audio(); shown ? hide() : show();
+    };
+    later(() => say('いないいない'), 200);
+  }
+
+  /* ---------- 0・1さい: キラキラタッチ ---------- */
+  function sparkle() {
+    document.body.classList.add('night');
+    app.innerHTML = `<div class="screen">${bar('キラキラタッチ')}
+      <div class="sky-area" id="sky"><canvas id="cv"></canvas><p class="sky-hint" id="sh">どこでも さわってね</p></div>
+    </div>`;
+    wireBack();
+    const sky = document.getElementById('sky'), cv = document.getElementById('cv'), ctx2 = cv.getContext('2d');
+    const hint = document.getElementById('sh');
+    const PAL = ['#FFD45E', '#FF8FB8', '#7FD3FF', '#9CF59B', '#C9A6FF', '#FFFFFF', '#FFB36B'];
+    const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];
+    let W = 0, H = 0, dpr = 1, raf = 0, parts = [], lastNote = 0;
+    function size() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = sky.clientWidth; H = sky.clientHeight;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx2.fillStyle = '#0E1430'; ctx2.fillRect(0, 0, W, H);
+    }
+    size();
+    const ro = new ResizeObserver(size); ro.observe(sky);
+    function chime(x) {
+      const now = performance.now();
+      if (now - lastNote < 110) return;
+      lastNote = now;
+      const f = NOTES[Math.max(0, Math.min(NOTES.length - 1, Math.floor(x / W * NOTES.length)))];
+      tone(f, 0, .9, 'sine', .1); tone(f * 2, 0, .5, 'sine', .03);
+    }
+    function burst(x, y, n, speed) {
+      for (let i = 0; i < n; i++) {
+        const ang = Math.random() * Math.PI * 2, v = (0.4 + Math.random()) * speed;
+        parts.push({ x, y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v - .4, life: 0, max: 50 + Math.random() * 40,
+          size: 5 + Math.random() * 10, color: PAL[rand(PAL.length)], star: Math.random() < .55, rot: Math.random() * 6 });
+      }
+    }
+    function ring(x, y) { parts.push({ ring: true, x, y, life: 0, max: 40, size: 10, color: PAL[rand(PAL.length)] }); }
+    function star(x, y, r, rot) {
+      ctx2.beginPath();
+      for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * .45 : r, a = rot + i * Math.PI / 5; ctx2.lineTo(x + rr * Math.cos(a), y + rr * Math.sin(a)); }
+      ctx2.closePath(); ctx2.fill();
+    }
+    function frame() {
+      ctx2.globalCompositeOperation = 'source-over';
+      ctx2.fillStyle = 'rgba(14,20,48,0.22)'; ctx2.fillRect(0, 0, W, H);
+      ctx2.globalCompositeOperation = 'lighter';
+      parts = parts.filter(p => p.life < p.max);
+      for (const p of parts) {
+        p.life++;
+        const k = 1 - p.life / p.max;
+        if (p.ring) {
+          ctx2.strokeStyle = p.color; ctx2.globalAlpha = k * .8; ctx2.lineWidth = 3;
+          ctx2.beginPath(); ctx2.arc(p.x, p.y, p.size + p.life * 2.2, 0, Math.PI * 2); ctx2.stroke();
+          continue;
+        }
+        p.x += p.vx; p.y += p.vy; p.vy += .03; p.vx *= .985; p.rot += .05;
+        ctx2.globalAlpha = Math.max(0, k);
+        ctx2.fillStyle = p.color;
+        if (p.star) star(p.x, p.y, p.size * (.6 + .4 * k), p.rot);
+        else { ctx2.beginPath(); ctx2.arc(p.x, p.y, p.size * .45 * (.5 + .5 * k), 0, Math.PI * 2); ctx2.fill(); }
+      }
+      ctx2.globalAlpha = 1;
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    const pos = e => { const r = sky.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    const down = new Set();
+    sky.addEventListener('pointerdown', e => {
+      e.preventDefault(); audio(); down.add(e.pointerId);
+      try { sky.setPointerCapture(e.pointerId); } catch (er) {}
+      const [x, y] = pos(e); burst(x, y, 16, 3.2); ring(x, y); lastNote = 0; chime(x);
+      hint.style.opacity = 0;
+    });
+    sky.addEventListener('pointermove', e => {
+      if (!down.has(e.pointerId)) return;
+      const [x, y] = pos(e); burst(x, y, 3, 1.6); chime(x);
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => sky.addEventListener(ev, e => down.delete(e.pointerId)));
+    sky.addEventListener('contextmenu', e => e.preventDefault());
+    cleanup = () => { cancelAnimationFrame(raf); ro.disconnect(); document.body.classList.remove('night'); };
+  }
+
   /* ---------- 0・1さい: ねんねの音 ---------- */
   const NSR = 22050;
   function genNoise(type, level) {
@@ -954,7 +1089,7 @@ body.night {
     let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, br = 0, hp = 0, xp = 0, lp = 0, lp2 = 0;
     const pink = w => { b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852; b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898; const o = b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362; b6 = w * .115926; return o * .11; };
     const brown = w => { br = (br + .02 * w) / 1.02; return br * 3.5; };
-    const kH = Math.exp(-2 * Math.PI * 1500 / NSR), kL = 1 - Math.exp(-2 * Math.PI * 4500 / NSR), kLow = 1 - Math.exp(-2 * Math.PI * 350 / NSR);
+    const kH = Math.exp(-2 * Math.PI * 1500 / NSR), kL = 1 - Math.exp(-2 * Math.PI * 4500 / NSR), kLow = 1 - Math.exp(-2 * Math.PI * 700 / NSR);
     for (let i = 0; i < T; i++) {
       const t = i / NSR, w = Math.random() * 2 - 1;
       let v = 0;
@@ -969,8 +1104,8 @@ body.night {
       } else if (type === 'womb') {
         lp2 += kLow * (brown(w) - lp2);
         const ph = t % .8;
-        const beat = (x, f, d, g) => x >= 0 ? Math.sin(2 * Math.PI * f * x) * Math.exp(-x / d) * g : 0;
-        v = lp2 * .9 + beat(ph, 52, .06, .9) + beat(ph - .27, 44, .05, .55);
+        const beat = (x, f, d, g) => x >= 0 ? (Math.sin(2 * Math.PI * f * x) + .6 * Math.sin(2 * Math.PI * f * 2 * x) + .3 * Math.sin(2 * Math.PI * f * 3 * x)) * Math.exp(-x / d) * g : 0;
+        v = lp2 * .9 + beat(ph, 62, .07, .9) + beat(ph - .27, 52, .06, .55);
       } else if (type === 'waves') {
         const m = .5 - .5 * Math.cos(2 * Math.PI * t / 8);
         v = pink(w) * (.12 + .88 * Math.pow(m, 1.6));
@@ -983,9 +1118,9 @@ body.night {
     let ss = 0, pk = 0;
     for (let i = 0; i < N; i++) { ss += out[i] * out[i]; pk = Math.max(pk, Math.abs(out[i])); }
     const rms = Math.sqrt(ss / N) || 1;
-    const target = { low: .05, mid: .1, high: .17 }[level] || .05;
-    const g = Math.min(target / rms, .95 / (pk || 1));
-    for (let i = 0; i < N; i++) out[i] *= g;
+    const target = ({ low: .05, mid: .1, high: .17 }[level] || .05) * (def.boost || 1);
+    const g = target / rms;
+    for (let i = 0; i < N; i++) out[i] = Math.tanh(out[i] * g);
     return out;
   }
   function toWav(f) {
