@@ -974,6 +974,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
             <button class="try" id="voice-try">ためしに聞く</button>
           </div>
           <p class="help">今の声：${jaVoice ? jaVoice.name : '見つかりません'}。声の自然さはスマホに入っている音声で決まります。</p>
+          ${/android/i.test(navigator.userAgent) ? `<p class="help"><b>Androidの場合</b>：声の種類はスマホ本体の設定で選びます。「設定」で「テキスト読み上げ」を検索 →「テキスト読み上げの出力」→ Google音声サービスの歯車 →「音声データをインストール」→「日本語（日本）」で好きな声を選び、アプリを開き直してください。</p>` : ''}
           <p class="help">もっと自然にするには、iPhoneは「設定」→「アクセシビリティ」→「読み上げコンテンツ」→「声」→「日本語」で「Kyoko（拡張）」や「O-ren（プレミアム）」などをダウンロードしてください。Androidは「Google音声サービス」の日本語音声を入れてください。入れたあと、ここで選べるようになります。</p>
         </div>
         <div class="row"><span class="lbl">声の速さ</span>${seg('rate', [['slow', 'ゆっくり'], ['normal', 'ふつう'], ['fast', 'はやい']])}</div>

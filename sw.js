@@ -1,5 +1,5 @@
 // オフライン用。ファイルを更新したら VERSION を上げる
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
   './sounds/ashika.mp3', './sounds/buta.mp3', './sounds/hitsuji.mp3', './sounds/hiyoko.mp3', './sounds/inoshishi.mp3', './sounds/inu.mp3', './sounds/karasu.mp3', './sounds/lion.mp3', './sounds/neko.mp3', './sounds/niwatori.mp3', './sounds/ookami.mp3', './sounds/suzume.mp3', './sounds/uma.mp3', './sounds/ushi.mp3', './sounds/yagi.mp3', './sounds/zou.mp3'];
