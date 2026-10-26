@@ -377,7 +377,7 @@ body.night {
   /* ---------- settings ---------- */
   const KEY = 'kids-touch-settings-v2';
   const DEFAULTS = {
-    age: 2, voice: true, voiceName: '', sfx: true, rate: 'normal',
+    age: 2, voice: true, voicePack: true, voiceName: '', sfx: true, rate: 'normal',
     animalCount: 16, cryMode: 'real',
     bubbleSpeed: 'slow', bubbleSay: true,
     q2: Object.assign(clone(PRESETS.easy), { quizType: 'mix', wait: 'normal' }),
@@ -424,8 +424,10 @@ body.night {
 
   /* ---------- sound & voice ---------- */
   let ctx = null;
+  let voicesPreloaded = false;
   function audio() {
     try { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) { ctx = null; }
+    if (ctx && !voicesPreloaded && S.voicePack) { voicesPreloaded = true; setTimeout(preloadVoices, 0); }
     return ctx;
   }
   function tone(freq, start, dur, type = 'sine', vol = 0.18) {
@@ -485,21 +487,59 @@ body.night {
   try { speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
   const RATES = { slow: 0.8, normal: 1.0, fast: 1.15 };
   const clean = t => String(t).replace(/\s+/g, '');
-  function say(text) {
-    if (!S.voice) return;
-    try {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(clean(text));
-      u.lang = 'ja-JP'; u.rate = RATES[S.rate] || 1; u.pitch = 1;
-      if (jaVoice) u.voice = jaVoice;
-      speechSynthesis.speak(u);
-    } catch (e) {}
+  /* 録音した声（VOICEVOX:春日部つむぎ, voice/vNNN.mp3）。無い台詞はスマホの読み上げを使う */
+  const VOICE_LINES = ["正解！", "ちがうよ。", "いないいない", "ばあ！", "このかげは、だれかな？", "ちがうよ。よくみてね", "ちがうよ。いっしょに、かぞえてみよう", "イヌ", "ネコ", "ブタ", "ウシ", "ヒヨコ", "ゾウ", "ライオン", "ヒツジ", "ウマ", "ニワトリ", "ヤギ", "カラス", "スズメ", "オオカミ", "イノシシ", "アシカ", "キリン", "ウサギ", "カメ", "ペンギン", "カタツムリ", "カニ", "クジラ", "リス", "チョウチョ", "ワニ", "ハリネズミ", "タコ", "キョウリュウ", "ワンワン", "ニャーオ", "ブーブー", "モーモー", "ピヨピヨ", "パオーン", "ガオー", "メェー", "ヒヒーン", "コケコッコー", "メェェー", "カーカー", "チュンチュン", "ワオーン", "ブフッ", "オウッ オウッ", "ピョンピョン", "チョキチョキ", "ザブーン", "ひらひら", "ガブッ", "アカ", "アオ", "キイロ", "ミドリ", "ピンク", "ムラサキ", "オレンジ", "アカは、どれかな？", "アオは、どれかな？", "キイロは、どれかな？", "ミドリは、どれかな？", "ピンクは、どれかな？", "ムラサキは、どれかな？", "オレンジは、どれかな？", "マルは、どれかな？", "サンカクは、どれかな？", "シカクは、どれかな？", "ホシは、どれかな？", "ハートは、どれかな？", "ヒシガタは、どれかな？", "赤いマルは、どれかな？", "赤いサンカクは、どれかな？", "赤いシカクは、どれかな？", "赤いホシは、どれかな？", "赤いハートは、どれかな？", "赤いヒシガタは、どれかな？", "青いマルは、どれかな？", "青いサンカクは、どれかな？", "青いシカクは、どれかな？", "青いホシは、どれかな？", "青いハートは、どれかな？", "青いヒシガタは、どれかな？", "黄色いマルは、どれかな？", "黄色いサンカクは、どれかな？", "黄色いシカクは、どれかな？", "黄色いホシは、どれかな？", "黄色いハートは、どれかな？", "黄色いヒシガタは、どれかな？", "ミドリのマルは、どれかな？", "ミドリのサンカクは、どれかな？", "ミドリのシカクは、どれかな？", "ミドリのホシは、どれかな？", "ミドリのハートは、どれかな？", "ミドリのヒシガタは、どれかな？", "ピンクのマルは、どれかな？", "ピンクのサンカクは、どれかな？", "ピンクのシカクは、どれかな？", "ピンクのホシは、どれかな？", "ピンクのハートは、どれかな？", "ピンクのヒシガタは、どれかな？", "ムラサキのマルは、どれかな？", "ムラサキのサンカクは、どれかな？", "ムラサキのシカクは、どれかな？", "ムラサキのホシは、どれかな？", "ムラサキのハートは、どれかな？", "ムラサキのヒシガタは、どれかな？", "オレンジのマルは、どれかな？", "オレンジのサンカクは、どれかな？", "オレンジのシカクは、どれかな？", "オレンジのホシは、どれかな？", "オレンジのハートは、どれかな？", "オレンジのヒシガタは、どれかな？", "リンゴは、いくつあるかな？", "バナナは、いくつあるかな？", "イチゴは、いくつあるかな？", "オサカナは、いくつあるかな？", "クルマは、いくつあるかな？", "ホシは、いくつあるかな？", "ヒヨコは、いくつあるかな？", "おにぎりは、いくつあるかな？", "フウセンは、いくつあるかな？", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "正解！1個だね！", "正解！2個だね！", "正解！3個だね！", "正解！4個だね！", "正解！5個だね！", "正解！6個だね！", "正解！7個だね！", "正解！8個だね！", "正解！9個だね！", "正解！10個だね！"];
+  const VOICE_IDX = new Map(VOICE_LINES.map((t, i) => [clean(t), i]));
+  const VOICE_KEYS = [...VOICE_IDX.keys()].sort((a, b) => b.length - a.length);
+  const voiceBufs = {};
+  let voiceNodes = [], voiceTok = 0;
+  function loadVoice(i) {
+    if (!voiceBufs[i]) {
+      voiceBufs[i] = fetch('voice/v' + String(i + 1).padStart(3, '0') + '.mp3')
+        .then(r => { if (!r.ok) throw new Error('no file'); return r.arrayBuffer(); })
+        .then(ab => new Promise((res, rej) => { const c = audio(); if (!c) return rej(); c.decodeAudioData(ab, res, rej); }))
+        .catch(() => { delete voiceBufs[i]; return null; });
+    }
+    return voiceBufs[i];
   }
-  function hush() { try { speechSynthesis.cancel(); } catch (e) {} stopCry(); }
-  function sayThen(text, cb, maxMs = 1800) {
+  function preloadVoices() { VOICE_LINES.forEach((_, i) => loadVoice(i)); }
+  // 文を録音済みの台詞に分ける（例：「ばあ！ヒツジ」→「ばあ！」+「ヒツジ」）。分けられなければ null
+  function splitVoice(text) {
+    const t = clean(text), out = [];
+    let p = 0;
+    while (p < t.length) {
+      const k = VOICE_KEYS.find(k => t.startsWith(k, p));
+      if (k) { out.push(VOICE_IDX.get(k)); p += k.length; }
+      else if ('。、！？!?…'.includes(t[p])) p++;
+      else return null;
+    }
+    return out.length ? out : null;
+  }
+  function stopVoice() { voiceTok++; voiceNodes.forEach(n => { try { n.stop(); } catch (e) {} }); voiceNodes = []; }
+  // 録音で話せたら true。onEnd は話し終わったとき（または失敗して読み上げに切り替えたとき）に呼ぶ
+  function playVoice(text, onEnd) {
+    if (!S.voicePack) return false;
+    const parts = splitVoice(text);
+    if (!parts) return false;
+    stopVoice();
+    const tok = voiceTok;
+    Promise.all(parts.map(loadVoice)).then(bufs => {
+      if (tok !== voiceTok) return;
+      const c = audio();
+      if (!c || bufs.some(b => !b)) { ttsSay(text, onEnd); return; }
+      let t = c.currentTime + 0.02;
+      bufs.forEach((b, i) => {
+        const src = c.createBufferSource(); src.buffer = b; src.connect(c.destination); src.start(t);
+        voiceNodes.push(src);
+        t += b.duration + (i < bufs.length - 1 ? 0.08 : 0);
+      });
+      if (onEnd) setTimeout(() => { if (tok === voiceTok) onEnd(); }, (t - c.currentTime) * 1000 + 60);
+    });
+    return true;
+  }
+  function ttsSay(text, onEnd, maxMs = 1800) {
     let done = false;
-    const fin = () => { if (done) return; done = true; cb(); };
-    if (!S.voice) { fin(); return; }
+    const fin = () => { if (done) return; done = true; if (onEnd) onEnd(); };
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(clean(text));
@@ -508,7 +548,22 @@ body.night {
       u.onend = () => setTimeout(fin, 80); u.onerror = fin;
       speechSynthesis.speak(u);
     } catch (e) { fin(); return; }
-    setTimeout(fin, maxMs);
+    if (onEnd) setTimeout(fin, maxMs);
+  }
+  function say(text) {
+    if (!S.voice) return;
+    try { speechSynthesis.cancel(); } catch (e) {}
+    if (playVoice(text)) return;
+    stopVoice();
+    ttsSay(text);
+  }
+  function hush() { try { speechSynthesis.cancel(); } catch (e) {} stopVoice(); stopCry(); }
+  function sayThen(text, cb, maxMs = 1800) {
+    if (!S.voice) { cb(); return; }
+    try { speechSynthesis.cancel(); } catch (e) {}
+    if (playVoice(text, cb)) return;
+    stopVoice();
+    ttsSay(text, cb, maxMs);
   }
 
   /* 本物の鳴き声 (sounds/*.mp3) */
@@ -656,7 +711,7 @@ body.night {
       <p class="parent-note">音が出ます。スマホのマナーモードを解除してください。</p>
     </div>`;
     app.querySelectorAll('.age').forEach(b => b.onclick = () => { S.age = +b.dataset.age; save(); sfx.pop(); home(); });
-    app.querySelectorAll('.tile').forEach(b => b.onclick = () => { sfx.pop(); go(START[b.dataset.g]); });
+    app.querySelectorAll('.tile').forEach(b => b.onclick = () => { audio(); sfx.pop(); go(START[b.dataset.g]); });
     holdToOpen(document.getElementById('gear'), () => go(settings));
   }
 
@@ -954,7 +1009,7 @@ body.night {
       } else {
         sfx.boo();
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        say(`${Y(a[1])}じゃないよ。よくみてね`);
+        say('ちがうよ。よくみてね');
       }
     }
     next(true);
@@ -1315,6 +1370,8 @@ body.night {
       <section class="sec">
         <h3>音</h3>
         ${sw('voice', '読み上げの声')}
+        ${sw('voicePack', '春日部つむぎの声で話す（録音）')}
+        <p class="help">オンにすると、ゲームの台詞を録音した声で話します。録音にない言葉や、オフのときは、スマホの読み上げを使います。声：VOICEVOX:春日部つむぎ</p>
         <div class="row">
           <label class="lbl" for="voice-pick">声の種類</label>
           <div class="voice-row">
