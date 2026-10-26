@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
 <style>
-/* Layout: one-screen toy box — home with two big doors, each game fills the screen with oversized tap targets; grown-up settings behind a long-press */
+/* Layout: one-screen toy box — age switch, three big game tiles per age; each game fills the screen with oversized tap targets; grown-up settings behind a long-press */
 :root {
   --bg: #F3F6FB;
   --card: #FFFFFF;
@@ -25,7 +25,10 @@
   --leaf: #2FAE6A;
   --sky: #3B82E0;
   --berry: #E5484D;
+  --grape: #8A5CD6;
+  --orange: #F7862F;
   --line: #DCE3EE;
+  --pond: #DDEEFF;
   --font-display: "Zen Maru Gothic", "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Meiryo", sans-serif;
   color-scheme: light;
 }
@@ -55,48 +58,56 @@ body {
   margin: 0 auto;
 }
 .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 14px; }
+button { font-family: inherit; }
+button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 
 /* top bar */
 .bar { display: flex; align-items: center; gap: 12px; min-height: 56px; }
 .back {
   width: 56px; height: 56px; border-radius: 50%;
   border: 3px solid var(--line); background: var(--card); color: var(--ink);
-  font: inherit; font-size: 26px; cursor: pointer;
-  display: grid; place-items: center; flex: none;
+  font-size: 26px; cursor: pointer; display: grid; place-items: center; flex: none;
 }
 .bar h2 { margin: 0; font-size: 22px; font-weight: 900; }
-.stars { margin-left: auto; font-size: 20px; color: var(--sun); letter-spacing: 2px; min-height: 1em; }
-
-button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
+.stars { margin-left: auto; font-size: 20px; color: var(--sun); letter-spacing: 2px; min-height: 1em; font-variant-numeric: tabular-nums; }
 
 /* home */
-.home-top { display: flex; justify-content: flex-end; }
+.home-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.home-title { margin: 0; white-space: nowrap; font-size: clamp(20px, 5.6vw, 30px); font-weight: 900; line-height: 1.2; }
+.home-title span { color: var(--berry); }
 .gear {
-  position: relative; display: flex; align-items: center; gap: 6px;
+  position: relative; display: flex; align-items: center; gap: 6px; flex: none;
   border: 2px solid var(--line); background: var(--card); color: var(--ink-soft);
-  font: inherit; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+  font-size: 13px; font-weight: 700; border-radius: 999px; padding: 8px 14px; cursor: pointer;
   overflow: hidden; min-height: 40px;
 }
 .gear .fill { position: absolute; inset: 0; background: var(--sun); opacity: .35; transform: scaleX(0); transform-origin: left; }
 .gear.holding .fill { transform: scaleX(1); transition: transform .9s linear; }
 .gear span { position: relative; }
-.home-title { text-align: center; margin: 0; font-size: clamp(28px, 7vw, 40px); font-weight: 900; line-height: 1.3; text-wrap: balance; }
-.home-title span { color: var(--berry); }
-.home-sub { text-align: center; color: var(--ink-soft); margin: 0; font-size: 15px; font-weight: 500; }
-.doors { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 16px; padding-block: 8px; }
-.door {
-  border: none; border-radius: 32px; cursor: pointer; font: inherit; color: #fff;
-  display: flex; align-items: center; justify-content: center; gap: 18px;
-  font-size: clamp(26px, 7vw, 38px); font-weight: 900;
-  box-shadow: 0 8px 0 rgba(0,0,0,.14);
-  transition: transform .12s;
-  padding: 16px;
+.ages { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--card); border: 3px solid var(--line); border-radius: 999px; padding: 5px; }
+.age {
+  border: none; background: transparent; color: var(--ink-soft); border-radius: 999px;
+  font-size: 24px; font-weight: 900; min-height: 54px; cursor: pointer;
 }
-.door:active { transform: translateY(6px); box-shadow: 0 2px 0 rgba(0,0,0,.14); }
-.door .pic { font-size: clamp(56px, 16vw, 88px); line-height: 1; }
-.door.animals { background: var(--leaf); }
-.door.quiz { background: var(--sky); }
-.level-badge { display: block; font-size: 15px; font-weight: 700; opacity: .9; margin-top: 4px; }
+.age[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.tiles { flex: 1; display: grid; grid-template-rows: repeat(3, 1fr); gap: 12px; min-height: 0; }
+.tile {
+  border: none; border-radius: 28px; cursor: pointer; color: #fff;
+  display: flex; align-items: center; gap: 16px; padding: 10px 20px; text-align: left;
+  box-shadow: 0 7px 0 rgba(0,0,0,.14); transition: transform .12s; min-height: 0;
+}
+.tile:active { transform: translateY(5px); box-shadow: 0 2px 0 rgba(0,0,0,.14); }
+.tile .pic { width: clamp(64px, 20vw, 96px); height: clamp(64px, 20vw, 96px); flex: none; display: grid; place-items: center; font-size: clamp(50px, 15vw, 76px); line-height: 1; }
+.tile .pic svg { width: 100%; height: 100%; }
+.tile .t { font-size: clamp(22px, 6.4vw, 32px); font-weight: 900; line-height: 1.2; }
+.tile .sub { display: block; font-size: 14px; font-weight: 700; opacity: .92; margin-top: 2px; }
+.tile.leaf { background: var(--leaf); }
+.tile.sky { background: var(--sky); }
+.tile.sun { background: var(--sun); color: var(--ink); }
+.tile.berry { background: var(--berry); }
+.tile.grape { background: var(--grape); }
+.tile.orange { background: var(--orange); }
+.sil-white { filter: brightness(0) invert(1); }
 .parent-note { text-align: center; font-size: 12px; color: var(--ink-soft); font-weight: 500; margin: 0; }
 
 /* animals */
@@ -118,7 +129,25 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 .bubble .cry { font-size: 20px; color: var(--berry); }
 .bubble .hint { font-size: 18px; color: var(--ink-soft); font-weight: 500; }
 
-/* quiz */
+/* bubbles game */
+.pond { flex: 1; position: relative; overflow: hidden; border-radius: 28px; background: var(--pond); border: 3px solid var(--line); min-height: 0; touch-action: none; }
+.pond-hint { position: absolute; left: 0; right: 0; top: 40%; text-align: center; margin: 0; font-size: 20px; color: var(--ink-soft); pointer-events: none; transition: opacity .4s; }
+.bub { position: absolute; padding: 0; border: none; background: none; cursor: pointer; animation: rise var(--dur) linear forwards; }
+.bub .in {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, rgba(255,255,255,.95) 0 9%, transparent 10%), radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--c) 25%, transparent) 0 58%, color-mix(in srgb, var(--c) 70%, transparent) 72%, var(--c) 100%);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--c) 80%, white);
+  animation: wobble 1.8s ease-in-out infinite alternate;
+}
+.bub.popped { pointer-events: none; }
+.bub.popped .in { animation: burst .32s ease-out forwards; }
+@keyframes rise { from { transform: translateY(0); } to { transform: translateY(calc(-1 * var(--rise))); } }
+@keyframes wobble { from { transform: translateX(-8px) scale(1, .96); } to { transform: translateX(8px) scale(.96, 1); } }
+@keyframes burst { to { transform: scale(1.7); opacity: 0; } }
+.splash { position: absolute; pointer-events: none; font-size: 26px; font-weight: 900; color: var(--ink); transform: translate(-50%, -50%); animation: splash .8s ease-out forwards; }
+@keyframes splash { from { opacity: 1; transform: translate(-50%, -50%) scale(.6); } to { opacity: 0; transform: translate(-50%, -120%) scale(1.2); } }
+
+/* quiz common */
 .ask {
   display: flex; align-items: center; justify-content: center; gap: 12px;
   background: var(--card); border: 3px solid var(--line); border-radius: 24px; min-height: 92px; padding: 8px 12px;
@@ -139,49 +168,89 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 }
 .opt {
   aspect-ratio: 1; max-width: 100%; border: 3px solid var(--line); border-radius: 28px; background: var(--card);
-  cursor: pointer; padding: 14%; display: grid; place-items: center;
+  cursor: pointer; padding: 14%; display: grid; place-items: center; color: var(--ink);
 }
 .opt svg { width: 100%; height: 100%; overflow: visible; }
+.choices.flat { grid-template-columns: repeat(var(--k), minmax(0, 1fr)); max-width: none; }
+.choices.flat .opt { grid-column: auto; width: auto; justify-self: stretch; }
+.opt.emo { padding: 0; overflow: hidden; font-size: clamp(48px, 13vw, 84px); line-height: 1; }
 .opt.shake { animation: shake .45s; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-12px)} 40%{transform:translateX(12px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }
 .opt.right { border-color: var(--berry); transform: scale(1.06); transition: transform .2s; }
 .opt.dim { opacity: .35; }
 
+/* counting */
+.tray {
+  flex: 1.2; min-height: 0; background: var(--card); border: 3px solid var(--line); border-radius: 28px;
+  display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 6px 10px; padding: 12px;
+}
+.thing { position: relative; border: none; background: none; padding: 4px; cursor: pointer; line-height: 1; font-size: var(--ts, 60px); border-radius: 20px; }
+.thing.counted { background: #FFF4D6; }
+.thing.counted::after {
+  content: attr(data-n); position: absolute; right: -4px; top: -6px;
+  width: 30px; height: 30px; border-radius: 50%; background: var(--berry); color: #fff;
+  font-size: 18px; font-weight: 900; display: grid; place-items: center; line-height: 30px;
+}
+.thing.flash { animation: pop .5s ease; }
+.nums { display: grid; gap: 12px; }
+.nums.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nums.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.nums.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.num {
+  border: 3px solid var(--line); background: var(--card); border-radius: 24px; cursor: pointer; color: var(--ink);
+  min-height: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.num b { font-size: clamp(44px, 13vw, 60px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.num small { font-size: 15px; color: var(--ink-soft); font-weight: 700; }
+.num.shake { animation: shake .45s; }
+.num.right { border-color: var(--berry); }
+.num.dim { opacity: .35; }
+
+/* shadow */
+.shadow-box {
+  flex: 1; min-height: 0; background: var(--card); border: 3px solid var(--line); border-radius: 28px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; padding: 8px;
+}
+.sil { font-size: clamp(100px, 30vw, 170px); line-height: 1.05; filter: brightness(0); opacity: .82; transition: filter .5s, opacity .5s; }
+.sil.reveal { filter: none; opacity: 1; }
+.shadow-q { font-size: clamp(22px, 6vw, 30px); font-weight: 900; margin: 0; text-align: center; }
+.shadow-box .speak { position: absolute; right: 10px; top: 10px; }
+
 /* settings (for grown-ups) */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.tab { border: 2px solid var(--line); background: var(--card); color: var(--ink); font-size: 15px; font-weight: 700; border-radius: 999px; padding: 8px 16px; min-height: 44px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
 .settings { overflow-y: auto; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding-bottom: 12px; font-weight: 500; }
 .sec { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .sec h3 { margin: 0; font-size: 17px; font-weight: 900; }
 .row { display: flex; flex-direction: column; gap: 8px; }
 .row > .lbl { font-size: 14px; font-weight: 700; }
-.row > .help { font-size: 12px; color: var(--ink-soft); margin: 0; }
+.help { font-size: 12px; color: var(--ink-soft); margin: 0; }
 .seg { display: flex; flex-wrap: wrap; gap: 8px; }
 .seg button, .chip {
-  border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: 15px; font-weight: 700;
+  border: 2px solid var(--line); background: var(--card); color: var(--ink); font-size: 15px; font-weight: 700;
   border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 44px;
   display: inline-flex; align-items: center; gap: 6px;
 }
 .seg button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
-.chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.seg button.chip[aria-pressed="true"] { background: var(--card); color: var(--ink); border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .chip[aria-pressed="false"] { opacity: .45; }
 .chip .dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
 .chip svg { width: 20px; height: 20px; }
 .preset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .preset button {
-  border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; border-radius: 16px;
+  border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 16px;
   padding: 10px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
-.preset button b { font-size: 16px; font-weight: 900; }
+.preset button b { font-size: 15px; font-weight: 900; white-space: nowrap; }
 .preset button small { font-size: 11px; color: var(--ink-soft); font-weight: 500; }
 .preset button[aria-pressed="true"] { border-color: var(--berry); background: #FFF1F1; }
 .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 700; }
-.switch button {
-  width: 60px; height: 34px; border-radius: 999px; border: none; background: var(--line); position: relative; cursor: pointer; flex: none;
-}
+.switch button { width: 60px; height: 34px; border-radius: 999px; border: none; background: var(--line); position: relative; cursor: pointer; flex: none; }
 .switch button::after { content: ""; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
 .switch button[aria-checked="true"] { background: var(--leaf); }
 .switch button[aria-checked="true"]::after { left: 30px; }
-.note { font-size: 12px; color: var(--ink-soft); margin: 0; }
-.reset { align-self: flex-start; border: 2px solid var(--line); background: var(--card); color: var(--ink-soft); font: inherit; font-size: 14px; border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 44px; }
+.reset { align-self: flex-start; border: 2px solid var(--line); background: var(--card); color: var(--ink-soft); font-size: 14px; border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 44px; }
 
 /* hanamaru overlay */
 .maru { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 20; }
@@ -192,7 +261,8 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .ani.pop, .opt.shake { animation: none; }
+  .ani.pop, .opt.shake, .num.shake, .thing.flash { animation: none; }
+  .bub .in { animation: none; }
   .maru.go path { animation-duration: .01s; }
 }
 </style>
@@ -211,6 +281,12 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     ['🐘', 'ぞう', 'パオーン'], ['🦁', 'らいおん', 'ガオー'], ['🐵', 'おさる', 'ウキキー'],
     ['🐑', 'ひつじ', 'メェー'], ['🦆', 'あひる', 'ガーガー'], ['🐴', 'うま', 'ヒヒーン']
   ];
+  const SHADOW_ANIMALS = [
+    ['🐘', 'ぞう', 'パオーン'], ['🦒', 'きりん', ''], ['🐰', 'うさぎ', 'ピョンピョン'], ['🐢', 'かめ', ''],
+    ['🐧', 'ぺんぎん', ''], ['🐌', 'かたつむり', ''], ['🦀', 'かに', 'チョキチョキ'], ['🐳', 'くじら', 'ザブーン'],
+    ['🐿️', 'りす', ''], ['🦋', 'ちょうちょ', 'ひらひら'], ['🐓', 'にわとり', 'コケコッコー'], ['🐊', 'わに', 'ガブッ'],
+    ['🐌', 'かたつむり', ''], ['🦔', 'はりねずみ', ''], ['🐙', 'たこ', ''], ['🦕', 'きょうりゅう', 'ガオー']
+  ].filter((a, i, arr) => arr.findIndex(b => b[1] === a[1]) === i);
   const COLORS = [
     { name: 'あか', adj: 'あかい', hex: '#E5484D' }, { name: 'あお', adj: 'あおい', hex: '#3B82E0' },
     { name: 'きいろ', adj: 'きいろい', hex: '#F5BE1B' }, { name: 'みどり', adj: 'みどりの', hex: '#2FAE6A' },
@@ -218,6 +294,8 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     { name: 'オレンジ', adj: 'オレンジの', hex: '#F7862F' }
   ];
   const SHAPES = ['まる', 'さんかく', 'しかく', 'ほし', 'ハート', 'ひしがた'];
+  const ITEMS = [['🍎', 'りんご'], ['🍌', 'バナナ'], ['🍓', 'いちご'], ['🐟', 'おさかな'], ['🚗', 'くるま'], ['⭐', 'ほし'], ['🐤', 'ひよこ'], ['🍙', 'おにぎり'], ['🎈', 'ふうせん']];
+  const NUM = ['', 'いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう', 'じゅう'];
 
   const PRESETS = {
     easy:   { choices: 2, colors: ['あか', 'あお', 'きいろ', 'みどり'], shapes: ['まる', 'さんかく', 'しかく'], combo: false },
@@ -225,33 +303,49 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     hard:   { choices: 4, colors: COLORS.map(c => c.name), shapes: SHAPES.slice(), combo: true }
   };
   const LEVEL_NAME = { easy: 'かんたん', normal: 'ふつう', hard: 'むずかしい', custom: 'カスタム' };
+  const clone = o => JSON.parse(JSON.stringify(o));
 
   /* ---------- settings ---------- */
-  const DEFAULTS = Object.assign({
-    level: 'normal', quizType: 'mix', voice: true, sfx: true, rate: 'normal',
-    animalCount: 12, cry: true, wait: 'normal'
-  }, PRESETS.normal);
+  const KEY = 'kids-touch-settings-v2';
+  const DEFAULTS = {
+    age: 2, voice: true, sfx: true, rate: 'normal',
+    animalCount: 12, cry: true,
+    bubbleSpeed: 'slow', bubbleSay: true,
+    q2: Object.assign(clone(PRESETS.easy), { quizType: 'mix', wait: 'normal' }),
+    q3: Object.assign(clone(PRESETS.normal), { quizType: 'mix', wait: 'normal' }),
+    countMax: 5, countChoices: 3,
+    shadowChoices: 3
+  };
   let S = load();
+  function fixQuiz(q, def) {
+    q = Object.assign(clone(def), q || {});
+    q.colors = (q.colors || []).filter(n => COLORS.some(c => c.name === n));
+    q.shapes = (q.shapes || []).filter(n => SHAPES.includes(n));
+    if (q.colors.length < 2) q.colors = def.colors.slice();
+    if (q.shapes.length < 2) q.shapes = def.shapes.slice();
+    return q;
+  }
   function load() {
     let s = {};
-    try { s = JSON.parse(localStorage.getItem('kids-touch-settings') || '{}') || {}; } catch (e) { s = {}; }
-    const out = Object.assign({}, DEFAULTS, s);
-    out.colors = (out.colors || []).filter(n => COLORS.some(c => c.name === n));
-    out.shapes = (out.shapes || []).filter(n => SHAPES.includes(n));
-    if (out.colors.length < 2) out.colors = DEFAULTS.colors.slice();
-    if (out.shapes.length < 2) out.shapes = DEFAULTS.shapes.slice();
+    try { s = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { s = {}; }
+    const out = Object.assign(clone(DEFAULTS), s);
+    out.q2 = fixQuiz(s.q2, DEFAULTS.q2);
+    out.q3 = fixQuiz(s.q3, DEFAULTS.q3);
+    if (out.age !== 2 && out.age !== 3) out.age = 2;
     return out;
   }
-  function save() { try { localStorage.setItem('kids-touch-settings', JSON.stringify(S)); } catch (e) {} }
-  function detectLevel() {
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function detectLevel(Q) {
     for (const k of ['easy', 'normal', 'hard']) {
       const p = PRESETS[k];
-      if (p.choices === S.choices && p.combo === S.combo &&
-          p.colors.length === S.colors.length && p.colors.every(c => S.colors.includes(c)) &&
-          p.shapes.length === S.shapes.length && p.shapes.every(c => S.shapes.includes(c))) return k;
+      if (p.choices === Q.choices && p.combo === Q.combo &&
+          p.colors.length === Q.colors.length && p.colors.every(c => Q.colors.includes(c)) &&
+          p.shapes.length === Q.shapes.length && p.shapes.every(c => Q.shapes.includes(c))) return k;
     }
     return 'custom';
   }
+  const getP = p => p.split('.').reduce((o, k) => o[k], S);
+  const setP = (p, v) => { const ks = p.split('.'), last = ks.pop(); ks.reduce((o, k) => o[k], S)[last] = v; };
 
   /* ---------- sound & voice ---------- */
   let ctx = null;
@@ -272,6 +366,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   }
   const sfx = {
     pop() { tone(660, 0, .12, 'triangle'); tone(990, .06, .12, 'triangle'); },
+    bubble() { const f = 500 + Math.random() * 500; tone(f, 0, .08, 'sine', .22); tone(f * 1.8, .04, .1, 'sine', .14); },
     yay() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .1, .25, 'triangle', .2)); },
     boo() { tone(330, 0, .18, 'sine', .12); tone(262, .15, .25, 'sine', .12); }
   };
@@ -312,10 +407,11 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     if (shape === 'ひしがた') body = `<polygon points="50,6 86,50 50,94 14,50" ${s}/>`;
     return `<svg viewBox="0 0 100 100" aria-hidden="true">${body}</svg>`;
   }
+  const PIC_SHAPES = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="30" cy="32" r="20" fill="#fff"/><polygon points="72,12 92,48 52,48" fill="#fff" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><rect x="12" y="58" width="36" height="36" rx="5" fill="#fff"/><polygon points="${STAR.split(' ').map(p => { const [x, y] = p.split(',').map(Number); return (52 + x * .44).toFixed(1) + ',' + (50 + y * .44).toFixed(1); }).join(' ')}" fill="#fff"/></svg>`;
+  const PIC_BUBBLES = `<svg viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="#fff" stroke-width="5"><circle cx="40" cy="56" r="30"/><circle cx="76" cy="26" r="16"/><circle cx="80" cy="74" r="10"/><path d="M26 44 a18 18 0 0 1 14 -10" stroke-linecap="round"/></svg>`;
 
   const rand = n => Math.floor(Math.random() * n);
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const colorObjs = () => COLORS.filter(c => S.colors.includes(c.name));
 
   /* ---------- hanamaru ---------- */
   function hanamaruPath() {
@@ -348,27 +444,62 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     setTimeout(() => el.remove(), Math.max(1200, ms - 100));
   }
 
-  /* ---------- screens ---------- */
+  /* ---------- navigation ---------- */
+  let cleanup = null, timers = [];
+  function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
+  function leave() {
+    hush();
+    timers.forEach(clearTimeout); timers = [];
+    if (cleanup) { cleanup(); cleanup = null; }
+    document.querySelectorAll('.maru').forEach(m => m.remove());
+  }
+  function go(fn) { leave(); fn(); }
   function bar(title, extra = '') {
     return `<div class="bar"><button class="back" id="back" aria-label="もどる">←</button><h2>${title}</h2>${extra}</div>`;
   }
+  function wireBack() { document.getElementById('back').onclick = () => go(home); }
+  const WAITS = { short: 1300, normal: 1800, long: 2600 };
+  let score = 0;
+  function addStar() {
+    score++;
+    const st = document.getElementById('stars');
+    if (st) st.textContent = '★'.repeat(((score - 1) % 10) + 1);
+  }
+
+  /* ---------- home ---------- */
+  const GAMES = {
+    2: [
+      { id: 'animals', t: 'どうぶつタッチ', sub: 'なまえと なきごえ', cls: 'leaf', pic: '<span>🐶</span>' },
+      { id: 'bubbles', t: 'シャボンだま', sub: 'タッチして わろう', cls: 'sky', pic: PIC_BUBBLES },
+      { id: 'quiz', t: 'いろ・かたち', sub: '', cls: 'orange', pic: PIC_SHAPES }
+    ],
+    3: [
+      { id: 'quiz', t: 'いろ・かたち', sub: '', cls: 'berry', pic: PIC_SHAPES },
+      { id: 'count', t: 'かずあそび', sub: 'いくつ あるかな', cls: 'sun', pic: '<span>🍎</span>' },
+      { id: 'shadow', t: 'かげあて', sub: 'だれの かげかな', cls: 'grape', pic: '<span class="sil-white">🐘</span>' }
+    ]
+  };
+  const START = { animals: () => animals(), bubbles: () => bubbles(), quiz: () => quiz(S.age), count: () => count(), shadow: () => shadow() };
 
   function home() {
-    hush();
-    const lv = LEVEL_NAME[detectLevel()];
+    const games = GAMES[S.age];
     app.innerHTML = `<div class="screen">
-      <div class="home-top"><button class="gear" id="gear" aria-label="おとなの設定（長押しで開く）"><i class="fill"></i><span>⚙ 設定（長押し）</span></button></div>
-      <h1 class="home-title">こども<span>タッチ</span>ひろば</h1>
-      <p class="home-sub">あそびたいほうを タッチしてね</p>
-      <div class="doors">
-        <button class="door animals" id="go-animals"><span class="pic">🐶</span><span>どうぶつ</span></button>
-        <button class="door quiz" id="go-quiz"><span class="pic">🔴</span><span>いろ・かたち<span class="level-badge">レベル：${lv}</span></span></button>
+      <div class="home-top">
+        <h1 class="home-title">こども<span>タッチ</span>ひろば</h1>
+        <button class="gear" id="gear" aria-label="おとなの設定（長押しで開く）"><i class="fill"></i><span>⚙ 長押し</span></button>
+      </div>
+      <div class="ages" role="group" aria-label="なんさい？">
+        <button class="age" data-age="2" aria-pressed="${S.age === 2}">2さい</button>
+        <button class="age" data-age="3" aria-pressed="${S.age === 3}">3さい</button>
+      </div>
+      <div class="tiles">
+        ${games.map(g => `<button class="tile ${g.cls}" data-g="${g.id}"><span class="pic">${g.pic}</span><span class="t">${g.t}<span class="sub">${g.id === 'quiz' ? 'レベル：' + LEVEL_NAME[detectLevel(S['q' + S.age])] : g.sub}</span></span></button>`).join('')}
       </div>
       <p class="parent-note">音が出ます。スマホのマナーモードを解除してください。</p>
     </div>`;
-    document.getElementById('go-animals').onclick = () => { sfx.pop(); animals(); };
-    document.getElementById('go-quiz').onclick = () => { sfx.pop(); quiz(); };
-    holdToOpen(document.getElementById('gear'), settings);
+    app.querySelectorAll('.age').forEach(b => b.onclick = () => { S.age = +b.dataset.age; save(); sfx.pop(); home(); });
+    app.querySelectorAll('.tile').forEach(b => b.onclick = () => { sfx.pop(); go(START[b.dataset.g]); });
+    holdToOpen(document.getElementById('gear'), () => go(settings));
   }
 
   function holdToOpen(btn, fn) {
@@ -381,13 +512,14 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     btn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
   }
 
+  /* ---------- 2さい: どうぶつタッチ ---------- */
   function animals() {
     const list = ANIMALS.slice(0, S.animalCount);
     app.innerHTML = `<div class="screen">${bar('どうぶつタッチ')}
       <div class="bubble" id="bubble"><div class="hint">どうぶつを タッチしてね</div></div>
       <div class="zoo ${list.length <= 6 ? 'few' : ''}">${list.map((a, i) => `<button class="ani" data-i="${i}" aria-label="${a[1]}">${a[0]}</button>`).join('')}</div>
     </div>`;
-    document.getElementById('back').onclick = home;
+    wireBack();
     const bubble = document.getElementById('bubble');
     app.querySelectorAll('.ani').forEach(btn => {
       btn.onclick = () => {
@@ -395,196 +527,380 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         sfx.pop();
         btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
         bubble.innerHTML = `<div class="name">${name}</div>${S.cry ? `<div class="cry">「${cry}」</div>` : ''}`;
-        setTimeout(() => say(S.cry ? `${name}。${cry}` : name), 120);
+        later(() => say(S.cry ? `${name}。${cry}` : name), 120);
       };
     });
   }
 
-  let score = 0, current = null, locked = false, nextTimer = null;
-  const WAITS = { short: 1300, normal: 1800, long: 2600 };
-  function quiz() {
+  /* ---------- 2さい: シャボンだま ---------- */
+  function bubbles() {
+    app.innerHTML = `<div class="screen">${bar('シャボンだま', '<div class="stars" id="cnt" aria-live="polite"></div>')}
+      <div class="pond" id="pond"><p class="pond-hint" id="hint">あわを タッチして わってね</p></div>
+    </div>`;
+    wireBack();
+    const pond = document.getElementById('pond');
+    const cnt = document.getElementById('cnt');
+    const dur = { slow: 9000, normal: 6500, fast: 4500 }[S.bubbleSpeed] || 9000;
+    let popped = 0;
+    function spawn() {
+      if (pond.querySelectorAll('.bub:not(.popped)').length >= 7) return;
+      const c = COLORS[rand(COLORS.length)];
+      const size = 72 + rand(56);
+      const b = document.createElement('button');
+      b.className = 'bub';
+      b.setAttribute('aria-label', c.name + 'の あわ');
+      b.style.setProperty('--c', c.hex);
+      b.style.setProperty('--dur', (dur * (0.85 + Math.random() * 0.3)) + 'ms');
+      b.style.setProperty('--rise', (pond.clientHeight + size + 30) + 'px');
+      b.style.width = b.style.height = size + 'px';
+      b.style.bottom = -size + 'px';
+      b.style.left = `calc((100% - ${size}px) * ${Math.random().toFixed(3)})`;
+      b.innerHTML = '<span class="in"></span>';
+      b.addEventListener('animationend', e => { if (e.animationName === 'rise') b.remove(); });
+      b.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        if (b.classList.contains('popped')) return;
+        const tr = getComputedStyle(b).transform;
+        b.style.transform = tr === 'none' ? '' : tr;
+        b.style.animation = 'none';
+        b.classList.add('popped');
+        sfx.bubble();
+        popped++;
+        cnt.textContent = 'わった ' + popped;
+        document.getElementById('hint').style.opacity = 0;
+        const r = b.getBoundingClientRect(), pr = pond.getBoundingClientRect();
+        const sp = document.createElement('div');
+        sp.className = 'splash';
+        sp.style.left = (r.left - pr.left + r.width / 2) + 'px';
+        sp.style.top = (r.top - pr.top + r.height / 2) + 'px';
+        sp.style.color = c.hex;
+        sp.textContent = S.bubbleSay ? c.name : 'パチン！';
+        pond.appendChild(sp);
+        setTimeout(() => sp.remove(), 800);
+        if (S.bubbleSay) say(c.name);
+        setTimeout(() => b.remove(), 340);
+      });
+      pond.appendChild(b);
+    }
+    [0, 400, 900].forEach(ms => later(spawn, ms));
+    const iv = setInterval(spawn, 850);
+    cleanup = () => clearInterval(iv);
+  }
+
+  /* ---------- いろ・かたち (2さい / 3さい) ---------- */
+  let current = null, locked = false;
+  function quiz(age) {
+    const Q = S['q' + age];
     score = 0;
     app.innerHTML = `<div class="screen">${bar('いろ・かたち', '<div class="stars" id="stars" aria-live="polite"></div>')}
       <div class="ask"><div class="q" id="q"></div><button class="speak" id="speak" aria-label="もういちど きく">🔊</button></div>
       <div class="choices" id="choices"></div>
     </div>`;
-    document.getElementById('back').onclick = () => { clearTimeout(nextTimer); home(); };
+    wireBack();
     document.getElementById('speak').onclick = () => current && say(current.voice);
+
+    function makeQuestion() {
+      const cols = COLORS.filter(c => Q.colors.includes(c.name));
+      const types = Q.quizType === 'mix' ? ['color', 'shape'] : [Q.quizType];
+      if (Q.combo && Q.quizType === 'mix') types.push('combo');
+      const type = types[rand(types.length)];
+
+      if (type === 'combo') {
+        const n = Math.min(Q.choices, cols.length * Q.shapes.length);
+        const tc = cols[rand(cols.length)], ts = Q.shapes[rand(Q.shapes.length)];
+        const opts = [{ c: tc, s: ts, ok: true }];
+        const key = o => o.c.name + o.s;
+        const used = new Set([key(opts[0])]);
+        const sameColor = shuffle(Q.shapes.filter(s => s !== ts))[0];
+        const sameShape = shuffle(cols.filter(c => c !== tc))[0];
+        [sameColor && { c: tc, s: sameColor }, sameShape && { c: sameShape, s: ts }].forEach(o => {
+          if (o && opts.length < n && !used.has(key(o))) { opts.push(o); used.add(key(o)); }
+        });
+        let guard = 0;
+        while (opts.length < n && guard++ < 200) {
+          const o = { c: cols[rand(cols.length)], s: Q.shapes[rand(Q.shapes.length)] };
+          if (!used.has(key(o))) { opts.push(o); used.add(key(o)); }
+        }
+        return {
+          label: `<b style="color:${tc.hex}">${tc.adj}</b><b>${ts}</b>は どれ？`,
+          voice: `${tc.adj} ${ts}は どれかな？`, target: `${tc.adj} ${ts}`,
+          opts: shuffle(opts).map(o => ({ svg: shapeSVG(o.s, o.c.hex), ok: !!o.ok, name: `${o.c.adj}${o.s}` }))
+        };
+      }
+      if (type === 'color') {
+        const n = Math.min(Q.choices, cols.length);
+        const pick = shuffle(cols).slice(0, n);
+        const shape = Q.shapes[rand(Q.shapes.length)];
+        const ans = rand(n);
+        return {
+          label: `<b style="color:${pick[ans].hex}">${pick[ans].name}</b>は どれ？`,
+          voice: `${pick[ans].name}は どれかな？`, target: pick[ans].name,
+          opts: pick.map((c, i) => ({ svg: shapeSVG(shape, c.hex), ok: i === ans, name: c.name }))
+        };
+      }
+      const n = Math.min(Q.choices, Q.shapes.length);
+      const shs = shuffle(Q.shapes).slice(0, n);
+      const pc = shuffle(cols);
+      const ans = rand(n);
+      return {
+        label: `<b>${shs[ans]}</b>は どれ？`,
+        voice: `${shs[ans]}は どれかな？`, target: shs[ans],
+        opts: shs.map((s, i) => ({ svg: shapeSVG(s, pc[i % pc.length].hex), ok: i === ans, name: s }))
+      };
+    }
+
+    function next(first) {
+      locked = false;
+      current = makeQuestion();
+      document.getElementById('q').innerHTML = current.label;
+      const box = document.getElementById('choices');
+      box.className = 'choices n' + current.opts.length;
+      box.innerHTML = current.opts.map((o, i) => `<button class="opt" data-i="${i}" aria-label="${o.name}">${o.svg}</button>`).join('');
+      box.querySelectorAll('.opt').forEach(btn => { btn.onclick = () => answer(btn, current.opts[+btn.dataset.i]); });
+      later(() => say(current.voice), first ? 150 : 300);
+    }
+    function answer(btn, opt) {
+      if (locked) return;
+      if (opt.ok) {
+        locked = true;
+        btn.classList.add('right');
+        app.querySelectorAll('.opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
+        const wait = WAITS[Q.wait] || 1800;
+        sfx.yay(); showMaru(wait); say('せいかい！すごいね！'); addStar();
+        later(next, wait);
+      } else {
+        sfx.boo();
+        btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+        say(`ちがうよ。${current.target}は どれかな？`);
+      }
+    }
     next(true);
   }
 
-  function makeQuestion() {
-    const cols = colorObjs();
-    let types = S.quizType === 'mix' ? ['color', 'shape'] : [S.quizType];
-    if (S.combo && S.quizType === 'mix') types.push('combo');
-    const type = types[rand(types.length)];
+  /* ---------- 3さい: かずあそび ---------- */
+  function count() {
+    score = 0;
+    app.innerHTML = `<div class="screen">${bar('かずあそび', '<div class="stars" id="stars" aria-live="polite"></div>')}
+      <div class="ask"><div class="q" id="q"></div><button class="speak" id="speak" aria-label="もういちど きく">🔊</button></div>
+      <div class="tray" id="tray"></div>
+      <div class="nums" id="nums"></div>
+    </div>`;
+    wireBack();
+    let n = 0, prev = 0, item = null, counted = 0, locked2 = false, voice = '';
+    document.getElementById('speak').onclick = () => say(voice);
+    const tray = document.getElementById('tray'), nums = document.getElementById('nums');
 
-    if (type === 'combo') {
-      const n = Math.min(S.choices, cols.length * S.shapes.length);
-      const tc = cols[rand(cols.length)], ts = S.shapes[rand(S.shapes.length)];
-      const opts = [{ c: tc, s: ts, ok: true }];
-      const key = o => o.c.name + o.s;
-      const used = new Set([key(opts[0])]);
-      // tricky distractors first: same color, then same shape
-      const tricky = shuffle([
-        ...S.shapes.filter(s => s !== ts).map(s => ({ c: tc, s })),
-        ...cols.filter(c => c !== tc).map(c => ({ c, s: ts }))
-      ]);
-      const sameColor = tricky.find(o => o.c === tc), sameShape = tricky.find(o => o.s === ts);
-      [sameColor, sameShape].forEach(o => { if (o && opts.length < n && !used.has(key(o))) { opts.push(o); used.add(key(o)); } });
-      let guard = 0;
-      while (opts.length < n && guard++ < 200) {
-        const o = { c: cols[rand(cols.length)], s: S.shapes[rand(S.shapes.length)] };
-        if (!used.has(key(o))) { opts.push(o); used.add(key(o)); }
+    function next(first) {
+      locked2 = false; counted = 0;
+      const max = Math.max(2, S.countMax);
+      do { n = 1 + rand(max); } while (n === prev && max > 1);
+      prev = n;
+      item = ITEMS[rand(ITEMS.length)];
+      voice = `${item[1]}は いくつ あるかな？`;
+      document.getElementById('q').innerHTML = `<b>${item[1]}</b>は いくつ？`;
+      const ts = n <= 3 ? 'clamp(64px,18vw,96px)' : n <= 6 ? 'clamp(52px,14vw,76px)' : 'clamp(40px,11vw,58px)';
+      tray.style.setProperty('--ts', ts);
+      tray.innerHTML = Array.from({ length: n }, (_, i) => `<button class="thing" data-i="${i}" aria-label="${item[1]}">${item[0]}</button>`).join('');
+      tray.querySelectorAll('.thing').forEach(t => t.onclick = () => {
+        if (t.classList.contains('counted') || locked2) return;
+        counted++;
+        t.dataset.n = counted; t.classList.add('counted', 'flash');
+        sfx.pop(); say(NUM[counted]);
+      });
+      const k = Math.min(S.countChoices, max);
+      const pool = shuffle(Array.from({ length: max }, (_, i) => i + 1).filter(x => x !== n))
+        .sort((a, b) => Math.abs(a - n) - Math.abs(b - n)).slice(0, k + 1);
+      const opts = [n].concat(shuffle(pool).slice(0, k - 1)).sort((a, b) => a - b);
+      nums.className = 'nums n' + opts.length;
+      nums.innerHTML = opts.map(v => `<button class="num" data-v="${v}" aria-label="${NUM[v]}"><b>${v}</b><small>${NUM[v]}</small></button>`).join('');
+      nums.querySelectorAll('.num').forEach(b => b.onclick = () => answer(b, +b.dataset.v));
+      later(() => say(voice), first ? 150 : 300);
+    }
+    function countAloud() {
+      locked2 = true;
+      tray.querySelectorAll('.thing').forEach(t => { t.classList.remove('counted', 'flash'); delete t.dataset.n; });
+      const things = [...tray.querySelectorAll('.thing')];
+      things.forEach((t, i) => later(() => {
+        t.dataset.n = i + 1; t.classList.add('counted', 'flash'); sfx.pop(); say(NUM[i + 1]);
+        if (i === things.length - 1) later(() => { locked2 = false; counted = things.length; }, 400);
+      }, 1100 + i * 800));
+    }
+    function answer(btn, v) {
+      if (locked2 && v !== n) return;
+      if (v === n) {
+        locked2 = true;
+        btn.classList.add('right');
+        nums.querySelectorAll('.num').forEach(b => { if (b !== btn) b.classList.add('dim'); });
+        tray.querySelectorAll('.thing').forEach((t, i) => { t.dataset.n = i + 1; t.classList.add('counted'); });
+        sfx.yay(); showMaru(2000); say(`せいかい！ ${NUM[n]}こ だね！`); addStar();
+        timers.forEach(clearTimeout); timers = [];
+        later(next, 2200);
+      } else {
+        sfx.boo();
+        btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+        say('ちがうよ。いっしょに かぞえてみよう');
+        countAloud();
       }
-      return {
-        label: `<b style="color:${tc.hex}">${tc.adj}</b><b>${ts}</b>は どれ？`,
-        voice: `${tc.adj} ${ts}は どれかな？`,
-        target: `${tc.adj} ${ts}`,
-        opts: shuffle(opts).map(o => ({ svg: shapeSVG(o.s, o.c.hex), ok: !!o.ok, name: `${o.c.adj}${o.s}` }))
-      };
     }
-    if (type === 'color') {
-      const n = Math.min(S.choices, cols.length);
-      const pick = shuffle(cols).slice(0, n);
-      const shape = S.shapes[rand(S.shapes.length)];
-      const ans = rand(n);
-      return {
-        label: `<b style="color:${pick[ans].hex}">${pick[ans].name}</b>は どれ？`,
-        voice: `${pick[ans].name}は どれかな？`,
-        target: pick[ans].name,
-        opts: pick.map((c, i) => ({ svg: shapeSVG(shape, c.hex), ok: i === ans, name: c.name }))
-      };
-    }
-    const n = Math.min(S.choices, S.shapes.length);
-    const shs = shuffle(S.shapes).slice(0, n);
-    const pc = shuffle(cols);
-    const ans = rand(n);
-    return {
-      label: `<b>${shs[ans]}</b>は どれ？`,
-      voice: `${shs[ans]}は どれかな？`,
-      target: shs[ans],
-      opts: shs.map((s, i) => ({ svg: shapeSVG(s, pc[i % pc.length].hex), ok: i === ans, name: s }))
-    };
+    next(true);
   }
 
-  function next(first) {
-    locked = false;
-    current = makeQuestion();
-    document.getElementById('q').innerHTML = current.label;
-    const box = document.getElementById('choices');
-    box.className = 'choices n' + current.opts.length;
-    box.innerHTML = current.opts.map((o, i) => `<button class="opt" data-i="${i}" aria-label="${o.name}">${o.svg}</button>`).join('');
-    box.querySelectorAll('.opt').forEach(btn => { btn.onclick = () => answer(btn, current.opts[+btn.dataset.i]); });
-    setTimeout(() => say(current.voice), first ? 150 : 300);
-  }
-
-  function answer(btn, opt) {
-    if (locked) return;
-    if (opt.ok) {
-      locked = true;
-      btn.classList.add('right');
-      document.querySelectorAll('.opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
-      const wait = WAITS[S.wait] || 1800;
-      sfx.yay(); showMaru(wait); say('せいかい！すごいね！');
-      score++;
-      const st = document.getElementById('stars');
-      if (st) st.textContent = '★'.repeat(((score - 1) % 10) + 1);
-      nextTimer = setTimeout(() => { if (document.getElementById('choices')) next(); }, wait);
-    } else {
-      sfx.boo();
-      btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-      say(`ちがうよ。${current.target}は どれかな？`);
+  /* ---------- 3さい: かげあて ---------- */
+  function shadow() {
+    score = 0;
+    app.innerHTML = `<div class="screen">${bar('かげあて', '<div class="stars" id="stars" aria-live="polite"></div>')}
+      <div class="shadow-box"><button class="speak" id="speak" aria-label="もういちど きく">🔊</button><div class="sil" id="sil"></div><p class="shadow-q" id="sq">この かげは だれかな？</p></div>
+      <div class="choices" id="choices"></div>
+    </div>`;
+    wireBack();
+    const pool = SHADOW_ANIMALS.concat(ANIMALS.filter(a => !SHADOW_ANIMALS.some(b => b[1] === a[1])));
+    let target = null, prev = null, locked3 = false;
+    const Q_VOICE = 'この かげは だれかな？';
+    document.getElementById('speak').onclick = () => say(Q_VOICE);
+    function next(first) {
+      locked3 = false;
+      do { target = pool[rand(pool.length)]; } while (target === prev);
+      prev = target;
+      const others = shuffle(pool.filter(a => a !== target)).slice(0, S.shadowChoices - 1);
+      const opts = shuffle([target].concat(others));
+      const sil = document.getElementById('sil');
+      sil.classList.remove('reveal');
+      sil.textContent = target[0];
+      document.getElementById('sq').textContent = 'この かげは だれかな？';
+      const box = document.getElementById('choices');
+      box.className = 'choices flat';
+      box.style.setProperty('--k', opts.length);
+      box.innerHTML = opts.map((a, i) => `<button class="opt emo" data-i="${i}" aria-label="${a[1]}">${a[0]}</button>`).join('');
+      box.querySelectorAll('.opt').forEach(b => b.onclick = () => answer(b, opts[+b.dataset.i]));
+      later(() => say(Q_VOICE), first ? 150 : 300);
     }
+    function answer(btn, a) {
+      if (locked3) return;
+      if (a === target) {
+        locked3 = true;
+        btn.classList.add('right');
+        app.querySelectorAll('.opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
+        document.getElementById('sil').classList.add('reveal');
+        document.getElementById('sq').textContent = `${a[1]}でした！`;
+        sfx.yay(); showMaru(2000); say(`せいかい！ ${a[1]}。${a[2] || ''}`); addStar();
+        later(next, 2300);
+      } else {
+        sfx.boo();
+        btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+        say(`${a[1]}じゃないよ。よく みてね`);
+      }
+    }
+    next(true);
   }
 
   /* ---------- settings screen ---------- */
-  function seg(key, items) {
-    return `<div class="seg" data-key="${key}">${items.map(([v, l]) => `<button data-v="${v}" aria-pressed="${String(S[key]) === String(v)}">${l}</button>`).join('')}</div>`;
+  let tab = null;
+  function seg(path, items) {
+    const cur = String(getP(path));
+    return `<div class="seg" data-path="${path}">${items.map(([v, l]) => `<button data-v="${v}" data-num="${typeof v === 'number'}" aria-pressed="${cur === String(v)}">${l}</button>`).join('')}</div>`;
   }
-  function sw(key, label) {
-    return `<div class="switch"><span id="lbl-${key}">${label}</span><button role="switch" data-key="${key}" aria-labelledby="lbl-${key}" aria-checked="${!!S[key]}"></button></div>`;
+  function sw(path, label) {
+    const id = 'lbl-' + path.replace('.', '-');
+    return `<div class="switch"><span id="${id}">${label}</span><button role="switch" data-path="${path}" aria-labelledby="${id}" aria-checked="${!!getP(path)}"></button></div>`;
+  }
+  function quizSection(age) {
+    const q = 'q' + age, Q = S[q], lv = detectLevel(Q);
+    return `<section class="sec">
+      <h3>いろ・かたち（${age}さい用）</h3>
+      <div class="row">
+        <span class="lbl">むずかしさ</span>
+        <div class="preset">
+          <button data-q="${q}" data-p="easy" aria-pressed="${lv === 'easy'}"><b>かんたん</b><small>2つから選ぶ</small></button>
+          <button data-q="${q}" data-p="normal" aria-pressed="${lv === 'normal'}"><b>ふつう</b><small>3つから選ぶ</small></button>
+          <button data-q="${q}" data-p="hard" aria-pressed="${lv === 'hard'}"><b>むずかしい</b><small>4つ・組合せ</small></button>
+        </div>
+        <p class="help">${lv === 'custom' ? '今はカスタム設定です。下の項目を個別に変えています。' : '下の項目で、さらに細かく変えられます。'}</p>
+      </div>
+      <div class="row"><span class="lbl">選択肢の数</span>${seg(q + '.choices', [[2, '2つ'], [3, '3つ'], [4, '4つ']])}</div>
+      <div class="row"><span class="lbl">出す問題</span>${seg(q + '.quizType', [['color', 'いろだけ'], ['shape', 'かたちだけ'], ['mix', 'まぜこぜ']])}</div>
+      ${sw(q + '.combo', '「あかい まる」のような組み合わせ問題も出す')}
+      <p class="help">組み合わせ問題は「まぜこぜ」のときに出ます。</p>
+      <div class="row">
+        <span class="lbl">使う色（2つ以上）</span>
+        <div class="seg">${COLORS.map(c => `<button class="chip" data-path="${q}.colors" data-v="${c.name}" aria-pressed="${Q.colors.includes(c.name)}"><i class="dot" style="background:${c.hex}"></i>${c.name}</button>`).join('')}</div>
+      </div>
+      <div class="row">
+        <span class="lbl">使う形（2つ以上）</span>
+        <div class="seg">${SHAPES.map(s => `<button class="chip" data-path="${q}.shapes" data-v="${s}" aria-pressed="${Q.shapes.includes(s)}">${shapeSVG(s, '#6B7488')}${s}</button>`).join('')}</div>
+      </div>
+      <div class="row"><span class="lbl">正解のあと、次の問題までの時間</span>${seg(q + '.wait', [['short', 'みじかい'], ['normal', 'ふつう'], ['long', 'ながい']])}</div>
+    </section>`;
   }
 
   function settings() {
-    hush();
-    const lv = detectLevel();
+    if (!tab) tab = String(S.age);
+    let body = '';
+    if (tab === '2') body = `
+      <section class="sec">
+        <h3>どうぶつタッチ</h3>
+        <div class="row"><span class="lbl">どうぶつの数</span>${seg('animalCount', [[6, '6ぴき（大きく表示）'], [12, '12ひき']])}</div>
+        ${sw('cry', '鳴き声も読み上げる')}
+      </section>
+      <section class="sec">
+        <h3>シャボンだま</h3>
+        <div class="row"><span class="lbl">あわの速さ</span>${seg('bubbleSpeed', [['slow', 'ゆっくり'], ['normal', 'ふつう'], ['fast', 'はやい']])}</div>
+        ${sw('bubbleSay', 'わったとき、色の名前を読み上げる')}
+      </section>
+      ${quizSection(2)}`;
+    if (tab === '3') body = `
+      ${quizSection(3)}
+      <section class="sec">
+        <h3>かずあそび</h3>
+        <div class="row"><span class="lbl">いくつまで数える？</span>${seg('countMax', [[3, '3まで'], [5, '5まで'], [10, '10まで']])}</div>
+        <div class="row"><span class="lbl">こたえの数字の数</span>${seg('countChoices', [[2, '2つ'], [3, '3つ'], [4, '4つ']])}</div>
+        <p class="help">まちがえると、いっしょに声に出して数え直します。</p>
+      </section>
+      <section class="sec">
+        <h3>かげあて</h3>
+        <div class="row"><span class="lbl">選択肢の数</span>${seg('shadowChoices', [[2, '2つ'], [3, '3つ'], [4, '4つ']])}</div>
+      </section>`;
+    if (tab === 'sound') body = `
+      <section class="sec">
+        <h3>音</h3>
+        ${sw('voice', '読み上げの声')}
+        <div class="row"><span class="lbl">声の速さ</span>${seg('rate', [['slow', 'ゆっくり'], ['normal', 'ふつう'], ['fast', 'はやい']])}</div>
+        ${sw('sfx', '効果音（ピコン、など）')}
+      </section>
+      <p class="help">設定はこのスマホ（ブラウザ）に保存されます。</p>
+      <button class="reset" id="reset">はじめの設定にもどす</button>`;
+
     app.innerHTML = `<div class="screen">${bar('おとなの設定')}
-      <div class="settings">
-        <section class="sec">
-          <h3>いろ・かたちクイズ</h3>
-          <div class="row">
-            <span class="lbl">むずかしさ</span>
-            <div class="preset" id="preset">
-              <button data-p="easy" aria-pressed="${lv === 'easy'}"><b>かんたん</b><small>2つから選ぶ</small></button>
-              <button data-p="normal" aria-pressed="${lv === 'normal'}"><b>ふつう</b><small>3つから選ぶ</small></button>
-              <button data-p="hard" aria-pressed="${lv === 'hard'}"><b>むずかしい</b><small>4つ・組み合わせ</small></button>
-            </div>
-            <p class="help">${lv === 'custom' ? '今はカスタム設定です。下の項目を個別に変えています。' : '下の項目で、さらに細かく変えられます。'}</p>
-          </div>
-          <div class="row"><span class="lbl">選択肢の数</span>${seg('choices', [[2, '2つ'], [3, '3つ'], [4, '4つ']])}</div>
-          <div class="row"><span class="lbl">出す問題</span>${seg('quizType', [['color', 'いろだけ'], ['shape', 'かたちだけ'], ['mix', 'まぜこぜ']])}</div>
-          ${sw('combo', '「あかい まる」のような組み合わせ問題も出す')}
-          <p class="note">組み合わせ問題は「まぜこぜ」のときに出ます。</p>
-          <div class="row">
-            <span class="lbl">使う色（2つ以上）</span>
-            <div class="seg" id="colors">${COLORS.map(c => `<button class="chip" data-v="${c.name}" aria-pressed="${S.colors.includes(c.name)}"><i class="dot" style="background:${c.hex}"></i>${c.name}</button>`).join('')}</div>
-          </div>
-          <div class="row">
-            <span class="lbl">使う形（2つ以上）</span>
-            <div class="seg" id="shapes">${SHAPES.map(s => `<button class="chip" data-v="${s}" aria-pressed="${S.shapes.includes(s)}">${shapeSVG(s, '#6B7488')}${s}</button>`).join('')}</div>
-          </div>
-          <div class="row"><span class="lbl">正解のあと、次の問題までの時間</span>${seg('wait', [['short', 'みじかい'], ['normal', 'ふつう'], ['long', 'ながい']])}</div>
-        </section>
-
-        <section class="sec">
-          <h3>どうぶつタッチ</h3>
-          <div class="row"><span class="lbl">どうぶつの数</span>${seg('animalCount', [[6, '6ぴき（大きく表示）'], [12, '12ひき']])}</div>
-          ${sw('cry', '鳴き声も読み上げる')}
-        </section>
-
-        <section class="sec">
-          <h3>音</h3>
-          ${sw('voice', '読み上げの声')}
-          <div class="row"><span class="lbl">声の速さ</span>${seg('rate', [['slow', 'ゆっくり'], ['normal', 'ふつう'], ['fast', 'はやい']])}</div>
-          ${sw('sfx', '効果音（ピコン、など）')}
-        </section>
-
-        <p class="note">設定はこのスマホ（ブラウザ）に保存されます。</p>
-        <button class="reset" id="reset">はじめの設定にもどす</button>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="2" aria-selected="${tab === '2'}">2さい用</button>
+        <button class="tab" role="tab" data-tab="3" aria-selected="${tab === '3'}">3さい用</button>
+        <button class="tab" role="tab" data-tab="sound" aria-selected="${tab === 'sound'}">音・その他</button>
       </div>
+      <div class="settings">${body}</div>
     </div>`;
 
-    document.getElementById('back').onclick = home;
+    document.getElementById('back').onclick = () => { tab = null; go(home); };
     const rerender = () => { const sc = app.querySelector('.settings').scrollTop; settings(); app.querySelector('.settings').scrollTop = sc; };
-
-    app.querySelectorAll('#preset button').forEach(b => b.onclick = () => {
-      Object.assign(S, JSON.parse(JSON.stringify(PRESETS[b.dataset.p])));
-      S.level = b.dataset.p; save(); sfx.pop(); rerender();
+    app.querySelectorAll('.tab').forEach(b => b.onclick = () => { tab = b.dataset.tab; sfx.pop(); settings(); });
+    app.querySelectorAll('.preset button').forEach(b => b.onclick = () => {
+      Object.assign(S[b.dataset.q], clone(PRESETS[b.dataset.p])); save(); sfx.pop(); rerender();
     });
-    app.querySelectorAll('.seg[data-key]').forEach(g => {
-      const key = g.dataset.key;
-      g.querySelectorAll('button').forEach(b => b.onclick = () => {
-        const v = b.dataset.v;
-        S[key] = (key === 'choices' || key === 'animalCount') ? +v : v;
-        save(); sfx.pop(); rerender();
-        if (key === 'rate') say('この はやさで よみます');
-      });
+    app.querySelectorAll('.seg[data-path] > button').forEach(b => b.onclick = () => {
+      const path = b.parentElement.dataset.path;
+      setP(path, b.dataset.num === 'true' ? +b.dataset.v : b.dataset.v);
+      save(); sfx.pop(); rerender();
+      if (path === 'rate') say('この はやさで よみます');
     });
     app.querySelectorAll('.switch button').forEach(b => b.onclick = () => {
-      const key = b.dataset.key; S[key] = !S[key]; save(); sfx.pop(); rerender();
+      setP(b.dataset.path, !getP(b.dataset.path)); save(); sfx.pop(); rerender();
     });
-    [['colors', 'colors'], ['shapes', 'shapes']].forEach(([id, key]) => {
-      app.querySelectorAll('#' + id + ' .chip').forEach(b => b.onclick = () => {
-        const v = b.dataset.v, arr = S[key];
-        if (arr.includes(v)) { if (arr.length <= 2) return; S[key] = arr.filter(x => x !== v); }
-        else S[key] = arr.concat(v);
-        save(); sfx.pop(); rerender();
-      });
+    app.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+      const path = b.dataset.path, v = b.dataset.v, arr = getP(path);
+      if (arr.includes(v)) { if (arr.length <= 2) return; setP(path, arr.filter(x => x !== v)); }
+      else setP(path, arr.concat(v));
+      save(); sfx.pop(); rerender();
     });
-    document.getElementById('reset').onclick = () => {
-      S = JSON.parse(JSON.stringify(DEFAULTS)); save(); sfx.pop(); rerender();
-    };
+    const reset = document.getElementById('reset');
+    if (reset) reset.onclick = () => { const age = S.age; S = clone(DEFAULTS); S.age = age; save(); sfx.pop(); rerender(); };
   }
 
   home();

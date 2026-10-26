@@ -1,5 +1,5 @@
 // オフライン用。ファイルを更新したら VERSION を上げる
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
