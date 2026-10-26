@@ -568,7 +568,7 @@ body.night {
 
   /* 本物の鳴き声 (sounds/*.mp3) */
   const buffers = {};
-  let cryNode = null;
+  let cryNodes = [];
   function loadSound(id) {
     if (!id) return Promise.resolve(null);
     if (!buffers[id]) {
@@ -579,17 +579,21 @@ body.night {
     }
     return buffers[id];
   }
-  function stopCry() { try { if (cryNode) cryNode.stop(); } catch (e) {} cryNode = null; }
+  function stopCry() { cryNodes.forEach(n => { try { n.stop(); } catch (e) {} }); cryNodes = []; }
   function playCry(animal, fallbackWord) {
     loadSound(animal[3]).then(buf => {
       const c = audio();
       if (!buf || !c) { if (fallbackWord) say(animal[2]); return; }
       stopCry();
-      const src = c.createBufferSource(), g = c.createGain();
-      src.buffer = buf; g.gain.value = 1;
-      src.connect(g).connect(c.destination);
-      src.start(); cryNode = src;
-      src.onended = () => { if (cryNode === src) cryNode = null; };
+      // 1秒より短い鳴き声（アシカ・イヌ・ブタなど）は2回鳴らす
+      const times = buf.duration < 1 ? 2 : 1;
+      let t = c.currentTime + 0.02;
+      for (let k = 0; k < times; k++) {
+        const src = c.createBufferSource();
+        src.buffer = buf; src.connect(c.destination); src.start(t);
+        cryNodes.push(src);
+        t += buf.duration + 0.18;
+      }
     });
   }
 
