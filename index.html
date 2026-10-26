@@ -988,8 +988,12 @@ body.night {
       const others = shuffle(pool.filter(a => a !== target)).slice(0, S.shadowChoices - 1);
       const opts = shuffle([target].concat(others));
       const sil = document.getElementById('sil');
+      // 次の動物は最初から影で出す（色が付いたまま見えないよう、切り替えの瞬間は変化の演出を止める）
+      sil.style.transition = 'none';
       sil.classList.remove('reveal');
       sil.textContent = target[0];
+      void sil.offsetWidth;
+      sil.style.transition = '';
       document.getElementById('sq').textContent = 'この かげは だれかな？';
       const box = document.getElementById('choices');
       box.className = 'choices flat';
