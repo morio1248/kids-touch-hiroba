@@ -119,6 +119,11 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   display: grid; place-items: center; line-height: 1;
 }
 .zoo.few .ani { font-size: clamp(60px, 18vw, 100px); }
+.zoo.many { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.zoo.many .ani { font-size: clamp(36px, 10.5vw, 66px); border-radius: 22px; }
+.ani span { display: block; line-height: 1; }
+.crow { filter: brightness(.28) saturate(0); }
+.sparrow { filter: sepia(.9) saturate(1.6) hue-rotate(-10deg) brightness(.85); }
 .ani.pop { animation: pop .5s ease; border-color: var(--sun); }
 @keyframes pop { 0%{transform:scale(1)} 30%{transform:scale(1.18) rotate(-6deg)} 60%{transform:scale(.95) rotate(4deg)} 100%{transform:scale(1)} }
 .bubble {
@@ -275,11 +280,14 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   const app = document.getElementById('app');
 
   /* ---------- data ---------- */
+  // [絵, なまえ, なきごえ(ことば), 音声ファイル, 見た目の調整]
   const ANIMALS = [
-    ['🐶', 'いぬ', 'ワンワン'], ['🐱', 'ねこ', 'ニャーオ'], ['🐷', 'ぶた', 'ブーブー'],
-    ['🐮', 'うし', 'モーモー'], ['🐤', 'ひよこ', 'ピヨピヨ'], ['🐸', 'かえる', 'ケロケロ'],
-    ['🐘', 'ぞう', 'パオーン'], ['🦁', 'らいおん', 'ガオー'], ['🐵', 'おさる', 'ウキキー'],
-    ['🐑', 'ひつじ', 'メェー'], ['🦆', 'あひる', 'ガーガー'], ['🐴', 'うま', 'ヒヒーン']
+    ['🐶', 'いぬ', 'ワンワン', 'inu'], ['🐱', 'ねこ', 'ニャーオ', 'neko'], ['🐷', 'ぶた', 'ブーブー', 'buta'],
+    ['🐮', 'うし', 'モーモー', 'ushi'], ['🐤', 'ひよこ', 'ピヨピヨ', 'hiyoko'], ['🐘', 'ぞう', 'パオーン', 'zou'],
+    ['🦁', 'らいおん', 'ガオー', 'lion'], ['🐑', 'ひつじ', 'メェー', 'hitsuji'], ['🐴', 'うま', 'ヒヒーン', 'uma'],
+    ['🐓', 'にわとり', 'コケコッコー', 'niwatori'], ['🐐', 'やぎ', 'メェェー', 'yagi'], ['🐦', 'からす', 'カーカー', 'karasu', 'crow'],
+    ['🐦', 'すずめ', 'チュンチュン', 'suzume', 'sparrow'], ['🐺', 'おおかみ', 'ワオーン', 'ookami'], ['🐗', 'いのしし', 'ブフッ', 'inoshishi'],
+    ['🦭', 'あしか', 'オウッ オウッ', 'ashika']
   ];
   const SHADOW_ANIMALS = [
     ['🐘', 'ぞう', 'パオーン'], ['🦒', 'きりん', ''], ['🐰', 'うさぎ', 'ピョンピョン'], ['🐢', 'かめ', ''],
@@ -309,7 +317,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   const KEY = 'kids-touch-settings-v2';
   const DEFAULTS = {
     age: 2, voice: true, sfx: true, rate: 'normal',
-    animalCount: 12, cry: true,
+    animalCount: 16, cryMode: 'real',
     bubbleSpeed: 'slow', bubbleSay: true,
     q2: Object.assign(clone(PRESETS.easy), { quizType: 'mix', wait: 'normal' }),
     q3: Object.assign(clone(PRESETS.normal), { quizType: 'mix', wait: 'normal' }),
@@ -332,6 +340,8 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     out.q2 = fixQuiz(s.q2, DEFAULTS.q2);
     out.q3 = fixQuiz(s.q3, DEFAULTS.q3);
     if (out.age !== 2 && out.age !== 3) out.age = 2;
+    if (![6, 12, 16].includes(out.animalCount)) out.animalCount = 16;
+    if (!['real', 'word', 'off'].includes(out.cryMode)) out.cryMode = 'real';
     return out;
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -384,7 +394,48 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       speechSynthesis.speak(u);
     } catch (e) {}
   }
-  function hush() { try { speechSynthesis.cancel(); } catch (e) {} }
+  function hush() { try { speechSynthesis.cancel(); } catch (e) {} stopCry(); }
+  function sayThen(text, cb, maxMs = 1800) {
+    let done = false;
+    const fin = () => { if (done) return; done = true; cb(); };
+    if (!S.voice) { fin(); return; }
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP'; u.rate = RATES[S.rate] || 0.85; u.pitch = 1.25;
+      if (jaVoice) u.voice = jaVoice;
+      u.onend = () => setTimeout(fin, 80); u.onerror = fin;
+      speechSynthesis.speak(u);
+    } catch (e) { fin(); return; }
+    setTimeout(fin, maxMs);
+  }
+
+  /* 本物の鳴き声 (sounds/*.mp3) */
+  const buffers = {};
+  let cryNode = null;
+  function loadSound(id) {
+    if (!id) return Promise.resolve(null);
+    if (!buffers[id]) {
+      buffers[id] = fetch('sounds/' + id + '.mp3')
+        .then(r => { if (!r.ok) throw new Error('no file'); return r.arrayBuffer(); })
+        .then(ab => new Promise((res, rej) => { const c = audio(); if (!c) return rej(); c.decodeAudioData(ab, res, rej); }))
+        .catch(() => null);
+    }
+    return buffers[id];
+  }
+  function stopCry() { try { if (cryNode) cryNode.stop(); } catch (e) {} cryNode = null; }
+  function playCry(animal, fallbackWord) {
+    loadSound(animal[3]).then(buf => {
+      const c = audio();
+      if (!buf || !c) { if (fallbackWord) say(animal[2]); return; }
+      stopCry();
+      const src = c.createBufferSource(), g = c.createGain();
+      src.buffer = buf; g.gain.value = 1;
+      src.connect(g).connect(c.destination);
+      src.start(); cryNode = src;
+      src.onended = () => { if (cryNode === src) cryNode = null; };
+    });
+  }
 
   /* ---------- shapes ---------- */
   function starPts() {
@@ -515,19 +566,23 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   /* ---------- 2さい: どうぶつタッチ ---------- */
   function animals() {
     const list = ANIMALS.slice(0, S.animalCount);
+    if (S.cryMode === 'real') list.forEach(a => loadSound(a[3]));
     app.innerHTML = `<div class="screen">${bar('どうぶつタッチ')}
       <div class="bubble" id="bubble"><div class="hint">どうぶつを タッチしてね</div></div>
-      <div class="zoo ${list.length <= 6 ? 'few' : ''}">${list.map((a, i) => `<button class="ani" data-i="${i}" aria-label="${a[1]}">${a[0]}</button>`).join('')}</div>
+      <div class="zoo ${list.length <= 6 ? 'few' : list.length > 12 ? 'many' : ''}">${list.map((a, i) => `<button class="ani" data-i="${i}" aria-label="${a[1]}"><span class="${a[4] || ''}">${a[0]}</span></button>`).join('')}</div>
     </div>`;
     wireBack();
     const bubble = document.getElementById('bubble');
     app.querySelectorAll('.ani').forEach(btn => {
       btn.onclick = () => {
-        const [, name, cry] = list[+btn.dataset.i];
-        sfx.pop();
+        const a = list[+btn.dataset.i], [, name, cry] = a;
+        timers.forEach(clearTimeout); timers = [];
+        stopCry();
         btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
-        bubble.innerHTML = `<div class="name">${name}</div>${S.cry ? `<div class="cry">「${cry}」</div>` : ''}`;
-        later(() => say(S.cry ? `${name}。${cry}` : name), 120);
+        bubble.innerHTML = `<div class="name">${name}</div>${S.cryMode !== 'off' ? `<div class="cry">「${cry}」</div>` : ''}`;
+        if (S.cryMode === 'real') { audio(); sayThen(name, () => playCry(a, true)); }
+        else if (S.cryMode === 'word') later(() => say(`${name}。${cry}`), 60);
+        else later(() => say(name), 60);
       };
     });
   }
@@ -753,7 +808,8 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       <div class="choices" id="choices"></div>
     </div>`;
     wireBack();
-    const pool = SHADOW_ANIMALS.concat(ANIMALS.filter(a => !SHADOW_ANIMALS.some(b => b[1] === a[1])));
+    const pool = SHADOW_ANIMALS.concat(ANIMALS.filter(a => !a[4] && !SHADOW_ANIMALS.some(b => b[1] === a[1])));
+    pool.forEach(a => a[3] && loadSound(a[3]));
     let target = null, prev = null, locked3 = false;
     const Q_VOICE = 'この かげは だれかな？';
     document.getElementById('speak').onclick = () => say(Q_VOICE);
@@ -782,7 +838,9 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         app.querySelectorAll('.opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
         document.getElementById('sil').classList.add('reveal');
         document.getElementById('sq').textContent = `${a[1]}でした！`;
-        sfx.yay(); showMaru(2000); say(`せいかい！ ${a[1]}。${a[2] || ''}`); addStar();
+        sfx.yay(); showMaru(2000); addStar();
+        if (a[3] && S.cryMode === 'real') sayThen(`せいかい！ ${a[1]}`, () => playCry(a, false), 2000);
+        else say(`せいかい！ ${a[1]}。${a[2] || ''}`);
         later(next, 2300);
       } else {
         sfx.boo();
@@ -838,8 +896,9 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     if (tab === '2') body = `
       <section class="sec">
         <h3>どうぶつタッチ</h3>
-        <div class="row"><span class="lbl">どうぶつの数</span>${seg('animalCount', [[6, '6ぴき（大きく表示）'], [12, '12ひき']])}</div>
-        ${sw('cry', '鳴き声も読み上げる')}
+        <div class="row"><span class="lbl">どうぶつの数</span>${seg('animalCount', [[6, '6ぴき（大きく表示）'], [12, '12ひき'], [16, '16ぴき（ぜんぶ）']])}</div>
+        <div class="row"><span class="lbl">鳴き声</span>${seg('cryMode', [['real', '本物の鳴き声'], ['word', 'ことばで読む（ワンワン）'], ['off', 'なまえだけ']])}</div>
+        <p class="help">「本物の鳴き声」は、なまえを読んだあとに録音した鳴き声が鳴ります。かげあてで正解したときも鳴ります。</p>
       </section>
       <section class="sec">
         <h3>シャボンだま</h3>
