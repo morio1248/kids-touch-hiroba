@@ -255,6 +255,9 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 .switch button::after { content: ""; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
 .switch button[aria-checked="true"] { background: var(--leaf); }
 .switch button[aria-checked="true"]::after { left: 30px; }
+.voice-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.voice-row select { flex: 1 1 200px; min-width: 0; min-height: 44px; border: 2px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 15px; padding: 6px 10px; }
+.try { border: 2px solid var(--line); background: var(--sun); color: var(--ink); font-size: 15px; font-weight: 700; border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 44px; }
 .reset { align-self: flex-start; border: 2px solid var(--line); background: var(--card); color: var(--ink-soft); font-size: 14px; border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 44px; }
 
 /* hanamaru overlay */
@@ -316,7 +319,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   /* ---------- settings ---------- */
   const KEY = 'kids-touch-settings-v2';
   const DEFAULTS = {
-    age: 2, voice: true, sfx: true, rate: 'normal',
+    age: 2, voice: true, voiceName: '', sfx: true, rate: 'normal',
     animalCount: 16, cryMode: 'real',
     bubbleSpeed: 'slow', bubbleSay: true,
     q2: Object.assign(clone(PRESETS.easy), { quizType: 'mix', wait: 'normal' }),
@@ -380,16 +383,52 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     yay() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .1, .25, 'triangle', .2)); },
     boo() { tone(330, 0, .18, 'sine', .12); tone(262, .15, .25, 'sine', .12); }
   };
-  let jaVoice = null;
-  function pickVoice() { try { jaVoice = speechSynthesis.getVoices().find(v => /^ja/i.test(v.lang)) || null; } catch (e) {} }
-  try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
-  const RATES = { slow: 0.65, normal: 0.85, fast: 1.05 };
+  /* 読み上げ用の書き方（画面はひらがな、声は漢字・カタカナで渡すとアクセントが正しくなる） */
+  const YOMI = {
+    'いぬ': '犬', 'ねこ': '猫', 'ぶた': '豚', 'うし': '牛', 'ひよこ': 'ヒヨコ', 'ぞう': '象', 'らいおん': 'ライオン',
+    'ひつじ': '羊', 'うま': '馬', 'にわとり': 'ニワトリ', 'やぎ': 'ヤギ', 'からす': 'カラス', 'すずめ': 'スズメ',
+    'おおかみ': 'オオカミ', 'いのしし': 'イノシシ', 'あしか': 'アシカ', 'きりん': 'キリン', 'うさぎ': 'ウサギ',
+    'かめ': 'カメ', 'ぺんぎん': 'ペンギン', 'かたつむり': 'カタツムリ', 'かに': 'カニ', 'くじら': 'クジラ',
+    'りす': 'リス', 'ちょうちょ': 'チョウチョ', 'わに': 'ワニ', 'はりねずみ': 'ハリネズミ', 'たこ': 'タコ',
+    'きょうりゅう': '恐竜',
+    'あか': '赤', 'あお': '青', 'きいろ': '黄色', 'みどり': '緑', 'むらさき': '紫',
+    'あかい': '赤い', 'あおい': '青い', 'きいろい': '黄色い', 'みどりの': '緑の', 'むらさきの': '紫の',
+    'まる': '丸', 'さんかく': '三角', 'しかく': '四角', 'ほし': '星', 'ひしがた': 'ひし形',
+    'りんご': 'リンゴ', 'いちご': 'イチゴ', 'おさかな': 'お魚', 'くるま': '車', 'ふうせん': '風船'
+  };
+  const Y = w => YOMI[w] || w;
+
+  /* 声の選び方：自然な声（Natural / プレミアム / 拡張 / Google）を優先 */
+  let jaVoice = null, jaVoices = [];
+  function voiceScore(v) {
+    const n = (v.name || '') + ' ' + (v.voiceURI || '');
+    let sc = 0;
+    if (/natural|neural/i.test(n)) sc += 100;
+    if (/premium|プレミアム/i.test(n)) sc += 90;
+    if (/enhanced|拡張/i.test(n)) sc += 80;
+    if (/online/i.test(n)) sc += 40;
+    if (/google/i.test(n)) sc += 60;
+    if (/nanami|o-ren|kyoko|otoya|hattori|keita|aoi|mayu|naoki|shiori/i.test(n)) sc += 20;
+    if (/compact|eloquence|ayumi|ichiro|haruka/i.test(n)) sc -= 30;
+    return sc;
+  }
+  function pickVoice() {
+    try {
+      jaVoices = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang));
+      const chosen = S.voiceName && jaVoices.find(v => v.name === S.voiceName);
+      jaVoice = chosen || jaVoices.slice().sort((a, b) => voiceScore(b) - voiceScore(a))[0] || null;
+    } catch (e) {}
+  }
+  pickVoice();
+  try { speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
+  const RATES = { slow: 0.8, normal: 1.0, fast: 1.15 };
+  const clean = t => String(t).replace(/\s+/g, '');
   function say(text) {
     if (!S.voice) return;
     try {
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ja-JP'; u.rate = RATES[S.rate] || 0.85; u.pitch = 1.25;
+      const u = new SpeechSynthesisUtterance(clean(text));
+      u.lang = 'ja-JP'; u.rate = RATES[S.rate] || 1; u.pitch = 1;
       if (jaVoice) u.voice = jaVoice;
       speechSynthesis.speak(u);
     } catch (e) {}
@@ -401,8 +440,8 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     if (!S.voice) { fin(); return; }
     try {
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'ja-JP'; u.rate = RATES[S.rate] || 0.85; u.pitch = 1.25;
+      const u = new SpeechSynthesisUtterance(clean(text));
+      u.lang = 'ja-JP'; u.rate = RATES[S.rate] || 1; u.pitch = 1;
       if (jaVoice) u.voice = jaVoice;
       u.onend = () => setTimeout(fin, 80); u.onerror = fin;
       speechSynthesis.speak(u);
@@ -580,9 +619,9 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         stopCry();
         btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
         bubble.innerHTML = `<div class="name">${name}</div>${S.cryMode !== 'off' ? `<div class="cry">「${cry}」</div>` : ''}`;
-        if (S.cryMode === 'real') { audio(); sayThen(name, () => playCry(a, true)); }
-        else if (S.cryMode === 'word') later(() => say(`${name}。${cry}`), 60);
-        else later(() => say(name), 60);
+        if (S.cryMode === 'real') { audio(); sayThen(Y(name), () => playCry(a, true)); }
+        else if (S.cryMode === 'word') later(() => say(`${Y(name)}。${cry}`), 60);
+        else later(() => say(Y(name)), 60);
       };
     });
   }
@@ -632,7 +671,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         sp.textContent = S.bubbleSay ? c.name : 'パチン！';
         pond.appendChild(sp);
         setTimeout(() => sp.remove(), 800);
-        if (S.bubbleSay) say(c.name);
+        if (S.bubbleSay) say(Y(c.name));
         setTimeout(() => b.remove(), 340);
       });
       pond.appendChild(b);
@@ -678,7 +717,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         }
         return {
           label: `<b style="color:${tc.hex}">${tc.adj}</b><b>${ts}</b>は どれ？`,
-          voice: `${tc.adj} ${ts}は どれかな？`, target: `${tc.adj} ${ts}`,
+          voice: `${Y(tc.adj)}${Y(ts)}は、どれかな？`, target: `${Y(tc.adj)}${Y(ts)}`,
           opts: shuffle(opts).map(o => ({ svg: shapeSVG(o.s, o.c.hex), ok: !!o.ok, name: `${o.c.adj}${o.s}` }))
         };
       }
@@ -689,7 +728,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         const ans = rand(n);
         return {
           label: `<b style="color:${pick[ans].hex}">${pick[ans].name}</b>は どれ？`,
-          voice: `${pick[ans].name}は どれかな？`, target: pick[ans].name,
+          voice: `${Y(pick[ans].name)}は、どれかな？`, target: Y(pick[ans].name),
           opts: pick.map((c, i) => ({ svg: shapeSVG(shape, c.hex), ok: i === ans, name: c.name }))
         };
       }
@@ -699,7 +738,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       const ans = rand(n);
       return {
         label: `<b>${shs[ans]}</b>は どれ？`,
-        voice: `${shs[ans]}は どれかな？`, target: shs[ans],
+        voice: `${Y(shs[ans])}は、どれかな？`, target: Y(shs[ans]),
         opts: shs.map((s, i) => ({ svg: shapeSVG(s, pc[i % pc.length].hex), ok: i === ans, name: s }))
       };
     }
@@ -721,12 +760,12 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         btn.classList.add('right');
         app.querySelectorAll('.opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
         const wait = WAITS[Q.wait] || 1800;
-        sfx.yay(); showMaru(wait); say('せいかい！すごいね！'); addStar();
+        sfx.yay(); showMaru(wait); say('正解！すごいね！'); addStar();
         later(next, wait);
       } else {
         sfx.boo();
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        say(`ちがうよ。${current.target}は どれかな？`);
+        say(`違うよ。${current.target}は、どれかな？`);
       }
     }
     next(true);
@@ -751,7 +790,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       do { n = 1 + rand(max); } while (n === prev && max > 1);
       prev = n;
       item = ITEMS[rand(ITEMS.length)];
-      voice = `${item[1]}は いくつ あるかな？`;
+      voice = `${Y(item[1])}は、いくつあるかな？`;
       document.getElementById('q').innerHTML = `<b>${item[1]}</b>は いくつ？`;
       const ts = n <= 3 ? 'clamp(64px,18vw,96px)' : n <= 6 ? 'clamp(52px,14vw,76px)' : 'clamp(40px,11vw,58px)';
       tray.style.setProperty('--ts', ts);
@@ -760,7 +799,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         if (t.classList.contains('counted') || locked2) return;
         counted++;
         t.dataset.n = counted; t.classList.add('counted', 'flash');
-        sfx.pop(); say(NUM[counted]);
+        sfx.pop(); say(String(counted));
       });
       const k = Math.min(S.countChoices, max);
       const pool = shuffle(Array.from({ length: max }, (_, i) => i + 1).filter(x => x !== n))
@@ -776,7 +815,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       tray.querySelectorAll('.thing').forEach(t => { t.classList.remove('counted', 'flash'); delete t.dataset.n; });
       const things = [...tray.querySelectorAll('.thing')];
       things.forEach((t, i) => later(() => {
-        t.dataset.n = i + 1; t.classList.add('counted', 'flash'); sfx.pop(); say(NUM[i + 1]);
+        t.dataset.n = i + 1; t.classList.add('counted', 'flash'); sfx.pop(); say(String(i + 1));
         if (i === things.length - 1) later(() => { locked2 = false; counted = things.length; }, 400);
       }, 1100 + i * 800));
     }
@@ -787,13 +826,13 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         btn.classList.add('right');
         nums.querySelectorAll('.num').forEach(b => { if (b !== btn) b.classList.add('dim'); });
         tray.querySelectorAll('.thing').forEach((t, i) => { t.dataset.n = i + 1; t.classList.add('counted'); });
-        sfx.yay(); showMaru(2000); say(`せいかい！ ${NUM[n]}こ だね！`); addStar();
+        sfx.yay(); showMaru(2000); say(`正解！${n}個だね！`); addStar();
         timers.forEach(clearTimeout); timers = [];
         later(next, 2200);
       } else {
         sfx.boo();
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        say('ちがうよ。いっしょに かぞえてみよう');
+        say('違うよ。いっしょに数えてみよう');
         countAloud();
       }
     }
@@ -811,7 +850,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     const pool = SHADOW_ANIMALS.concat(ANIMALS.filter(a => !a[4] && !SHADOW_ANIMALS.some(b => b[1] === a[1])));
     pool.forEach(a => a[3] && loadSound(a[3]));
     let target = null, prev = null, locked3 = false;
-    const Q_VOICE = 'この かげは だれかな？';
+    const Q_VOICE = 'この影は、だれかな？';
     document.getElementById('speak').onclick = () => say(Q_VOICE);
     function next(first) {
       locked3 = false;
@@ -839,13 +878,13 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         document.getElementById('sil').classList.add('reveal');
         document.getElementById('sq').textContent = `${a[1]}でした！`;
         sfx.yay(); showMaru(2000); addStar();
-        if (a[3] && S.cryMode === 'real') sayThen(`せいかい！ ${a[1]}`, () => playCry(a, false), 2000);
-        else say(`せいかい！ ${a[1]}。${a[2] || ''}`);
+        if (a[3] && S.cryMode === 'real') sayThen(`正解！${Y(a[1])}！`, () => playCry(a, false), 2000);
+        else say(`正解！${Y(a[1])}。${a[2] || ''}`);
         later(next, 2300);
       } else {
         sfx.boo();
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        say(`${a[1]}じゃないよ。よく みてね`);
+        say(`${Y(a[1])}じゃないよ。よく見てね`);
       }
     }
     next(true);
@@ -891,6 +930,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   }
 
   function settings() {
+    pickVoice();
     if (!tab) tab = String(S.age);
     let body = '';
     if (tab === '2') body = `
@@ -922,6 +962,18 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       <section class="sec">
         <h3>音</h3>
         ${sw('voice', '読み上げの声')}
+        <div class="row">
+          <label class="lbl" for="voice-pick">声の種類</label>
+          <div class="voice-row">
+            <select id="voice-pick">
+              <option value="">おすすめ（自動で選ぶ）</option>
+              ${jaVoices.map(v => `<option value="${v.name.replace(/"/g, '&quot;')}" ${S.voiceName === v.name ? 'selected' : ''}>${v.name}</option>`).join('')}
+            </select>
+            <button class="try" id="voice-try">ためしに聞く</button>
+          </div>
+          <p class="help">今の声：${jaVoice ? jaVoice.name : '見つかりません'}。声の自然さはスマホに入っている音声で決まります。</p>
+          <p class="help">もっと自然にするには、iPhoneは「設定」→「アクセシビリティ」→「読み上げコンテンツ」→「声」→「日本語」で「Kyoko（拡張）」や「O-ren（プレミアム）」などをダウンロードしてください。Androidは「Google音声サービス」の日本語音声を入れてください。入れたあと、ここで選べるようになります。</p>
+        </div>
         <div class="row"><span class="lbl">声の速さ</span>${seg('rate', [['slow', 'ゆっくり'], ['normal', 'ふつう'], ['fast', 'はやい']])}</div>
         ${sw('sfx', '効果音（ピコン、など）')}
       </section>
@@ -947,7 +999,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       const path = b.parentElement.dataset.path;
       setP(path, b.dataset.num === 'true' ? +b.dataset.v : b.dataset.v);
       save(); sfx.pop(); rerender();
-      if (path === 'rate') say('この はやさで よみます');
+      if (path === 'rate') say('この速さで読みます');
     });
     app.querySelectorAll('.switch button').forEach(b => b.onclick = () => {
       setP(b.dataset.path, !getP(b.dataset.path)); save(); sfx.pop(); rerender();
@@ -958,6 +1010,10 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       else setP(path, arr.concat(v));
       save(); sfx.pop(); rerender();
     });
+    const vp = document.getElementById('voice-pick');
+    if (vp) vp.onchange = () => { S.voiceName = vp.value; save(); pickVoice(); rerender(); say('こんにちは。赤は、どれかな？'); };
+    const vt = document.getElementById('voice-try');
+    if (vt) vt.onclick = () => say('こんにちは。これは犬です。赤は、どれかな？');
     const reset = document.getElementById('reset');
     if (reset) reset.onclick = () => { const age = S.age; S = clone(DEFAULTS); S.age = age; save(); sfx.pop(); rerender(); };
   }
