@@ -762,7 +762,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         btn.classList.add('right');
         app.querySelectorAll('.opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
         const wait = WAITS[Q.wait] || 1800;
-        sfx.yay(); showMaru(wait); say('正解！すごいね！'); addStar();
+        sfx.yay(); showMaru(wait); say('正解！'); addStar();
         later(next, wait);
       } else {
         sfx.boo();
