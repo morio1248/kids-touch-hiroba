@@ -29,6 +29,7 @@
   --orange: #F7862F;
   --line: #DCE3EE;
   --pond: #DDEEFF;
+  --night: #2E3A66;
   --font-display: "Zen Maru Gothic", "BIZ UDPGothic", "Hiragino Maru Gothic ProN", "Meiryo", sans-serif;
   color-scheme: light;
 }
@@ -84,10 +85,10 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 .gear .fill { position: absolute; inset: 0; background: var(--sun); opacity: .35; transform: scaleX(0); transform-origin: left; }
 .gear.holding .fill { transform: scaleX(1); transition: transform .9s linear; }
 .gear span { position: relative; }
-.ages { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--card); border: 3px solid var(--line); border-radius: 999px; padding: 5px; }
+.ages { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--card); border: 3px solid var(--line); border-radius: 999px; padding: 5px; }
 .age {
   border: none; background: transparent; color: var(--ink-soft); border-radius: 999px;
-  font-size: 24px; font-weight: 900; min-height: 54px; cursor: pointer;
+  font-size: clamp(17px, 5vw, 24px); font-weight: 900; min-height: 54px; cursor: pointer; white-space: nowrap; padding: 0 4px;
 }
 .age[aria-pressed="true"] { background: var(--ink); color: #fff; }
 .tiles { flex: 1; display: grid; grid-template-rows: repeat(3, 1fr); gap: 12px; min-height: 0; }
@@ -107,6 +108,41 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 .tile.berry { background: var(--berry); }
 .tile.grape { background: var(--grape); }
 .tile.orange { background: var(--orange); }
+.tile.night { background: var(--night); }
+.baby-note { grid-row: span 2; background: var(--card); border: 3px solid var(--line); border-radius: 28px; padding: 18px 20px; font-weight: 500; font-size: 15px; line-height: 1.7; display: flex; flex-direction: column; justify-content: center; gap: 6px; overflow: auto; }
+.baby-note b { font-weight: 900; font-size: 17px; }
+
+/* ねんねの音 (night palette while this screen is open) */
+body.night {
+  --bg: #121830; --card: #1C2440; --ink: #E6EAF6; --ink-soft: #9BA6C6; --line: #2C3658; --sun: #F4C76A;
+}
+.nn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.nn {
+  border: 3px solid var(--line); background: var(--card); color: var(--ink); border-radius: 22px; cursor: pointer;
+  min-height: 76px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left;
+}
+.nn .ic { font-size: 30px; line-height: 1; flex: none; }
+.nn b { display: block; font-size: 17px; font-weight: 900; }
+.nn small { display: block; font-size: 12px; color: var(--ink-soft); font-weight: 500; }
+.nn[aria-pressed="true"] { border-color: var(--sun); background: color-mix(in srgb, var(--sun) 14%, var(--card)); }
+.nn-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.nn-row .lbl { font-size: 14px; color: var(--ink-soft); min-width: 3.5em; }
+.nn-seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.nn-seg button { border: 2px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 8px 14px; min-height: 44px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.nn-seg button[aria-pressed="true"] { background: var(--sun); color: #1C2440; border-color: var(--sun); }
+.nn-play { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+.nn-main {
+  border: none; border-radius: 999px; min-height: 72px; font-size: 24px; font-weight: 900; cursor: pointer;
+  background: var(--sun); color: #1C2440; display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.nn-main.on { background: var(--card); color: var(--ink); border: 3px solid var(--sun); }
+.nn-status { text-align: center; font-size: 15px; color: var(--ink-soft); min-height: 1.4em; font-variant-numeric: tabular-nums; }
+.nn-dark { border: 2px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; min-height: 48px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.nn-note { font-size: 12px; color: var(--ink-soft); margin: 0; font-weight: 500; line-height: 1.6; }
+.blackout { position: fixed; inset: 0; background: #000; z-index: 50; display: flex; align-items: flex-end; justify-content: center; padding-bottom: max(28px, env(safe-area-inset-bottom, 0px)); touch-action: none; }
+.blackout span { color: #3a3a3a; font-size: 13px; font-weight: 500; user-select: none; }
+.blackout .ring { position: absolute; inset: auto 0 0 0; height: 4px; background: #333; transform: scaleX(0); transform-origin: left; }
+.blackout.holding .ring { transform: scaleX(1); transition: transform 2s linear; }
 .sil-white { filter: brightness(0) invert(1); }
 .parent-note { text-align: center; font-size: 12px; color: var(--ink-soft); font-weight: 500; margin: 0; }
 
@@ -306,6 +342,14 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
   ];
   const SHAPES = ['まる', 'さんかく', 'しかく', 'ほし', 'ハート', 'ひしがた'];
   const ITEMS = [['🍎', 'りんご'], ['🍌', 'バナナ'], ['🍓', 'いちご'], ['🐟', 'おさかな'], ['🚗', 'くるま'], ['⭐', 'ほし'], ['🐤', 'ひよこ'], ['🍙', 'おにぎり'], ['🎈', 'ふうせん']];
+  const NOISES = [
+    { id: 'white', ic: '📻', t: 'ザーッ', sub: 'ホワイトノイズ', sec: 12 },
+    { id: 'pink', ic: '🌧️', t: 'さらさら', sub: '雨のような音', sec: 12 },
+    { id: 'brown', ic: '🌀', t: 'ゴーッ', sub: '低くこもった音', sec: 12 },
+    { id: 'shush', ic: '🤫', t: 'シーッ', sub: 'あやすときの声', sec: 16 },
+    { id: 'womb', ic: '💓', t: 'おなかの中', sub: '心音と胎内の音', sec: 20 },
+    { id: 'waves', ic: '🌊', t: 'なみ', sub: 'よせては返す波', sec: 16 }
+  ];
   const NUM = ['', 'いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう', 'じゅう'];
 
   const PRESETS = {
@@ -325,7 +369,8 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     q2: Object.assign(clone(PRESETS.easy), { quizType: 'mix', wait: 'normal' }),
     q3: Object.assign(clone(PRESETS.normal), { quizType: 'mix', wait: 'normal' }),
     countMax: 5, countChoices: 3,
-    shadowChoices: 3
+    shadowChoices: 3,
+    noiseType: 'pink', noiseVol: 'low', noiseTimer: 30
   };
   let S = load();
   function fixQuiz(q, def) {
@@ -342,7 +387,10 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     const out = Object.assign(clone(DEFAULTS), s);
     out.q2 = fixQuiz(s.q2, DEFAULTS.q2);
     out.q3 = fixQuiz(s.q3, DEFAULTS.q3);
-    if (out.age !== 2 && out.age !== 3) out.age = 2;
+    if (![1, 2, 3].includes(out.age)) out.age = 2;
+    if (!NOISES.some(n => n.id === out.noiseType)) out.noiseType = 'pink';
+    if (!['low', 'mid', 'high'].includes(out.noiseVol)) out.noiseVol = 'low';
+    if (![15, 30, 60, 0].includes(out.noiseTimer)) out.noiseTimer = 30;
     if (![6, 12, 16].includes(out.animalCount)) out.animalCount = 16;
     if (!['real', 'word', 'off'].includes(out.cryMode)) out.cryMode = 'real';
     return out;
@@ -558,6 +606,9 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 
   /* ---------- home ---------- */
   const GAMES = {
+    1: [
+      { id: 'nenne', t: 'ねんねの音', sub: 'ホワイトノイズ など', cls: 'night', pic: '<span>🌙</span>' }
+    ],
     2: [
       { id: 'animals', t: 'どうぶつタッチ', sub: 'なまえと なきごえ', cls: 'leaf', pic: '<span>🐶</span>' },
       { id: 'bubbles', t: 'シャボンだま', sub: 'タッチして わろう', cls: 'sky', pic: PIC_BUBBLES },
@@ -569,7 +620,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
       { id: 'shadow', t: 'かげあて', sub: 'だれの かげかな', cls: 'grape', pic: '<span class="sil-white">🐘</span>' }
     ]
   };
-  const START = { animals: () => animals(), bubbles: () => bubbles(), quiz: () => quiz(S.age), count: () => count(), shadow: () => shadow() };
+  const START = { nenne: () => nenne(), animals: () => animals(), bubbles: () => bubbles(), quiz: () => quiz(S.age), count: () => count(), shadow: () => shadow() };
 
   function home() {
     const games = GAMES[S.age];
@@ -579,11 +630,13 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
         <button class="gear" id="gear" aria-label="おとなの設定（長押しで開く）"><i class="fill"></i><span>⚙ 長押し</span></button>
       </div>
       <div class="ages" role="group" aria-label="なんさい？">
+        <button class="age" data-age="1" aria-pressed="${S.age === 1}">0・1さい</button>
         <button class="age" data-age="2" aria-pressed="${S.age === 2}">2さい</button>
         <button class="age" data-age="3" aria-pressed="${S.age === 3}">3さい</button>
       </div>
       <div class="tiles">
         ${games.map(g => `<button class="tile ${g.cls}" data-g="${g.id}"><span class="pic">${g.pic}</span><span class="t">${g.t}<span class="sub">${g.id === 'quiz' ? 'レベル：' + LEVEL_NAME[detectLevel(S['q' + S.age])] : g.sub}</span></span></button>`).join('')}
+        ${S.age === 1 ? `<div class="baby-note"><b>泣きやまないときに</b><span>ザーッという音や、おなかの中のような音は、赤ちゃんが落ち着きやすいといわれています。</span><span>スマホは赤ちゃんの顔から離して置き、音量は小さめにしてください。</span></div>` : ''}
       </div>
       <p class="parent-note">音が出ます。スマホのマナーモードを解除してください。</p>
     </div>`;
@@ -892,6 +945,165 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
     next(true);
   }
 
+  /* ---------- 0・1さい: ねんねの音 ---------- */
+  const NSR = 22050;
+  function genNoise(type, level) {
+    const def = NOISES.find(n => n.id === type);
+    const N = NSR * def.sec, XF = Math.floor(NSR * 0.4), T = N + XF;
+    const a = new Float32Array(T);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, br = 0, hp = 0, xp = 0, lp = 0, lp2 = 0;
+    const pink = w => { b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852; b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898; const o = b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362; b6 = w * .115926; return o * .11; };
+    const brown = w => { br = (br + .02 * w) / 1.02; return br * 3.5; };
+    const kH = Math.exp(-2 * Math.PI * 1500 / NSR), kL = 1 - Math.exp(-2 * Math.PI * 4500 / NSR), kLow = 1 - Math.exp(-2 * Math.PI * 350 / NSR);
+    for (let i = 0; i < T; i++) {
+      const t = i / NSR, w = Math.random() * 2 - 1;
+      let v = 0;
+      if (type === 'white') v = w * .5;
+      else if (type === 'pink') v = pink(w);
+      else if (type === 'brown') v = brown(w);
+      else if (type === 'shush') {
+        hp = kH * (hp + w - xp); xp = w; lp += kL * (hp - lp);
+        const ph = t % 1.6;
+        const env = ph < .18 ? ph / .18 : ph < 1.05 ? 1 : ph < 1.45 ? 1 - (ph - 1.05) / .4 : 0;
+        v = lp * env * env * 1.6;
+      } else if (type === 'womb') {
+        lp2 += kLow * (brown(w) - lp2);
+        const ph = t % .8;
+        const beat = (x, f, d, g) => x >= 0 ? Math.sin(2 * Math.PI * f * x) * Math.exp(-x / d) * g : 0;
+        v = lp2 * .9 + beat(ph, 52, .06, .9) + beat(ph - .27, 44, .05, .55);
+      } else if (type === 'waves') {
+        const m = .5 - .5 * Math.cos(2 * Math.PI * t / 8);
+        v = pink(w) * (.12 + .88 * Math.pow(m, 1.6));
+      }
+      a[i] = v;
+    }
+    // seamless loop: crossfade the tail into the head
+    for (let i = 0; i < XF; i++) { const x = i / XF; a[i] = a[i] * Math.sqrt(x) + a[N + i] * Math.sqrt(1 - x); }
+    const out = a.subarray(0, N);
+    let ss = 0, pk = 0;
+    for (let i = 0; i < N; i++) { ss += out[i] * out[i]; pk = Math.max(pk, Math.abs(out[i])); }
+    const rms = Math.sqrt(ss / N) || 1;
+    const target = { low: .05, mid: .1, high: .17 }[level] || .05;
+    const g = Math.min(target / rms, .95 / (pk || 1));
+    for (let i = 0; i < N; i++) out[i] *= g;
+    return out;
+  }
+  function toWav(f) {
+    const buf = new ArrayBuffer(44 + f.length * 2), v = new DataView(buf);
+    const w = (o, str) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + f.length * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, NSR, true);
+    v.setUint32(28, NSR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, f.length * 2, true);
+    for (let i = 0; i < f.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, f[i])) * 32767, true);
+    return buf;
+  }
+
+  let nAudio = null, nSrc = null, nGain = null, nUrl = null, nEnd = 0, nTick = null, nLock = null;
+  function noiseStop() {
+    try { if (nAudio) { nAudio.pause(); nAudio.src = ''; } } catch (e) {}
+    try { if (nSrc) nSrc.stop(); } catch (e) {}
+    if (nUrl) URL.revokeObjectURL(nUrl);
+    nAudio = nSrc = nGain = nUrl = null; nEnd = 0;
+    clearInterval(nTick); nTick = null;
+    try { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; } catch (e) {}
+  }
+  async function noiseStart() {
+    noiseStop();
+    const def = NOISES.find(n => n.id === S.noiseType);
+    const f = genNoise(S.noiseType, S.noiseVol);
+    let ok = false;
+    try {
+      nUrl = URL.createObjectURL(new Blob([toWav(f)], { type: 'audio/wav' }));
+      const a = new Audio(); a.loop = true; a.setAttribute('playsinline', ''); a.src = nUrl;
+      await a.play(); nAudio = a; ok = true;
+    } catch (e) { if (nUrl) URL.revokeObjectURL(nUrl); nUrl = null; }
+    if (!ok) {
+      const c = audio(); if (!c) return false;
+      const b = c.createBuffer(1, f.length, NSR); b.copyToChannel(f, 0);
+      nSrc = c.createBufferSource(); nSrc.buffer = b; nSrc.loop = true;
+      nGain = c.createGain(); nGain.gain.value = 1; nSrc.connect(nGain).connect(c.destination); nSrc.start();
+    }
+    nEnd = S.noiseTimer ? Date.now() + S.noiseTimer * 60000 : 0;
+    try {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({ title: 'ねんねの音：' + def.t, artist: 'こどもタッチひろば' });
+        navigator.mediaSession.playbackState = 'playing';
+        navigator.mediaSession.setActionHandler('pause', () => { noiseStop(); if (nUI) nUI(); });
+        navigator.mediaSession.setActionHandler('play', () => { noiseStart().then(() => nUI && nUI()); });
+      }
+    } catch (e) {}
+    nTick = setInterval(() => { if (nEnd && Date.now() >= nEnd) noiseFadeOut(); if (nUI) nUI(); }, 1000);
+    return true;
+  }
+  function noiseFadeOut() {
+    nEnd = 0;
+    const steps = 20; let k = 0;
+    const iv = setInterval(() => {
+      k++;
+      const v = Math.max(0, 1 - k / steps);
+      try { if (nAudio) nAudio.volume = v; if (nGain) nGain.gain.value = v; } catch (e) {}
+      if (k >= steps) { clearInterval(iv); noiseStop(); if (nUI) nUI(); }
+    }, 500);
+  }
+  const playing = () => !!(nAudio || nSrc);
+  let nUI = null;
+
+  function nenne() {
+    document.body.classList.add('night');
+    const seg = (key, items) => `<div class="nn-seg" data-key="${key}">${items.map(([v, l]) => `<button data-v="${v}" aria-pressed="${String(S[key]) === String(v)}">${l}</button>`).join('')}</div>`;
+    app.innerHTML = `<div class="screen">${bar('ねんねの音')}
+      <div class="nn-grid">${NOISES.map(n => `<button class="nn" data-n="${n.id}" aria-pressed="${S.noiseType === n.id}"><span class="ic">${n.ic}</span><span><b>${n.t}</b><small>${n.sub}</small></span></button>`).join('')}</div>
+      <div class="nn-row"><span class="lbl">音量</span>${seg('noiseVol', [['low', '小さめ'], ['mid', 'ふつう'], ['high', '大きめ']])}</div>
+      <div class="nn-row"><span class="lbl">タイマー</span>${seg('noiseTimer', [[15, '15分'], [30, '30分'], [60, '60分'], [0, 'ずっと']])}</div>
+      <div class="nn-play">
+        <button class="nn-main" id="nn-main"></button>
+        <div class="nn-status" id="nn-status" aria-live="polite"></div>
+        <button class="nn-dark" id="nn-dark">画面を真っ暗にする（長押しでもどる）</button>
+        <p class="nn-note">スマホは赤ちゃんの顔から離して置き、音量は小さめで使ってください。タイマーが終わると、ゆっくり小さくなって止まります。</p>
+      </div>
+    </div>`;
+    const main = document.getElementById('nn-main'), st = document.getElementById('nn-status');
+    nUI = () => {
+      if (!document.getElementById('nn-main')) return;
+      const on = playing();
+      main.classList.toggle('on', on);
+      main.innerHTML = on ? '■ とめる' : '▶ ならす';
+      if (!on) { st.textContent = ''; return; }
+      if (nEnd) { const r = Math.max(0, Math.ceil((nEnd - Date.now()) / 1000)); st.textContent = `あと ${Math.floor(r / 60)}分${String(r % 60).padStart(2, '0')}秒で止まります`; }
+      else st.textContent = '止めるまで鳴り続けます';
+    };
+    nUI();
+    main.onclick = async () => { if (playing()) noiseStop(); else { audio(); await noiseStart(); } nUI(); };
+    app.querySelectorAll('.nn').forEach(b => b.onclick = async () => {
+      S.noiseType = b.dataset.n; save();
+      app.querySelectorAll('.nn').forEach(x => x.setAttribute('aria-pressed', x === b));
+      audio(); await noiseStart(); nUI();
+    });
+    app.querySelectorAll('.nn-seg').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = async () => {
+      const key = g.dataset.key;
+      S[key] = key === 'noiseTimer' ? +b.dataset.v : b.dataset.v; save();
+      g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      if (key === 'noiseVol' && playing()) await noiseStart();
+      if (key === 'noiseTimer' && playing()) nEnd = S.noiseTimer ? Date.now() + S.noiseTimer * 60000 : 0;
+      nUI();
+    }));
+    document.getElementById('nn-dark').onclick = blackout;
+    document.getElementById('back').onclick = () => go(home);
+    cleanup = () => { noiseStop(); nUI = null; document.body.classList.remove('night'); document.querySelectorAll('.blackout').forEach(x => x.remove()); releaseLock(); };
+  }
+  async function blackout() {
+    const el = document.createElement('div');
+    el.className = 'blackout';
+    el.innerHTML = '<span>2秒長押しでもどる</span><i class="ring"></i>';
+    document.body.appendChild(el);
+    try { if ('wakeLock' in navigator) nLock = await navigator.wakeLock.request('screen'); } catch (e) { nLock = null; }
+    let t = null;
+    el.addEventListener('pointerdown', e => { e.preventDefault(); el.classList.add('holding'); t = setTimeout(() => { el.remove(); releaseLock(); }, 2000); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, () => { el.classList.remove('holding'); clearTimeout(t); }));
+    el.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  function releaseLock() { try { if (nLock) nLock.release(); } catch (e) {} nLock = null; }
+
   /* ---------- settings screen ---------- */
   let tab = null;
   function seg(path, items) {
@@ -933,7 +1145,7 @@ button:focus-visible { outline: 4px solid var(--sky); outline-offset: 3px; }
 
   function settings() {
     pickVoice();
-    if (!tab) tab = String(S.age);
+    if (!tab) tab = S.age === 3 ? '3' : '2';
     let body = '';
     if (tab === '2') body = `
       <section class="sec">
